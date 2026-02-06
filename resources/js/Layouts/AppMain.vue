@@ -30,7 +30,6 @@
 
     //Esto es para los mensajes de success y error
     const page = usePage();
-    console.log(page.props)
 
     let removeFinishEventListener = router.on('finish',()=>{
         if(page.props.flash?.success){
