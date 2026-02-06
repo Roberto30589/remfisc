@@ -31,8 +31,22 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'warning' => fn () => $request->session()->get('warning'),
+                'info' => fn () => $request->session()->get('info'),
+            ],
             'auth' => [
-                'user' => $request->user(),
+                'user' => fn () => $request->user()
+                    ? $request->user()->only('id', 'name', 'email')
+                    : null,
+                'roles' => fn () => $request->user()
+                    ? $request->user()->getRoleNames() // Método nativo de Spatie más limpio
+                    : [],
+                'permissions' => fn () => $request->user()
+                    ? $request->user()->getAllPermissions()->pluck('name') // Método nativo de Spatie
+                    : [],
             ],
         ];
     }
