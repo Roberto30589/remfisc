@@ -110,13 +110,14 @@ const submit = () => {
                 <TextInput
                     id="rut"
                     type="text"
+                    name="rut"
                     class="mt-1 block w-full" 
                     v-bind:class="rutInputClass"
                     v-model="form.rut"
                     @input="onRutInput"
                     required
                     autofocus
-                    autocomplete="username"
+                    autocomplete="rut"
                 />
 
                 <InputError class="mt-2" :message="rutError || form.errors.rut" />
@@ -129,6 +130,7 @@ const submit = () => {
                 <TextInput
                     id="password"
                     type="password"
+                    name="password"
                     class="mt-1 block w-full"
                     v-model="form.password"
                     required

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Yajra\DataTables\Facades\DataTables;
 
 use App\Models\User;
 use App\Models\Shift;
@@ -19,12 +18,12 @@ class UserController extends Controller
 
     public function index()
     {
-        return Inertia::render('Users/Index');
+        return Inertia::render('User/Index');
     }
 
     public function add()
     {
-        return Inertia::render('Users/Form', [
+        return Inertia::render('User/Form', [
             'roles'  => Role::all(),
             'shifts' => Shift::all(),
         ]);
@@ -32,7 +31,7 @@ class UserController extends Controller
 
     public function select(User $user)
     {
-        return Inertia::render('Users/Form', [
+        return Inertia::render('User/Form', [
             'user'   => $user->load('roles', 'shifts'),
             'roles'  => Role::all(),
             'shifts' => Shift::all(),

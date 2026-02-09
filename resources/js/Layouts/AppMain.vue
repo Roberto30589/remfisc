@@ -142,11 +142,11 @@
                 </template>
 
                 <template #content>
-                    <AsideDropdownLink :href="route('admin.users')" :active="route().current('admin.users')">
+                    <AsideDropdownLink :href="route('admin.users.index')" :active="route().current('admin.users.index')">
                         <FontAwesomeIcon :icon="faUsers" size="lg" class="min-w-7 pr-1" />
                         Usuarios
                     </AsideDropdownLink>
-                    <AsideDropdownLink :href="route('admin.machines')" :active="route().current('admin.machines')">
+                    <AsideDropdownLink :href="route('admin.machines.index')" :active="route().current('admin.machines.index')">
                         <FontAwesomeIcon :icon="faTruck" size="lg" class="min-w-6 pr-2" />
                         Maquinas
                     </AsideDropdownLink>
@@ -155,16 +155,17 @@
         </div>
     </aside>
 
-    <!-- HEADER SLOT -->
-    <div v-if="$slots.header" class="pt-12">
-        <div class="bg-white shadow py-6 px-4 sm:px-6 lg:px-8">
-            <slot name="header" />
-        </div>
-    </div>
+
 
     <!-- Page Content -->
     <main class="pt-4 min-h-screen overflow-x-auto transition-margin-left duration-300"
           :class="{'ms-0 sm:ms-10': showingNavigationDropdown, 'ms-0 sm:ms-52': ! showingNavigationDropdown }">
+        <!-- HEADER SLOT -->
+        <div v-if="$slots.header" class="pt-8">
+            <div class="bg-white shadow py-4 px-4 sm:px-6 lg:px-8">
+                <slot name="header" />
+            </div>
+        </div>
         <slot />
     </main>
 

@@ -39,6 +39,19 @@ class DatabaseSeeder extends Seeder
             $adminUser->assignRole($adminRole);
         }
 
+        $adminUser = User::firstOrCreate(
+            ['rut' => '16.978.624-0'], // RUT único
+            [
+                'name'     => 'Roberto Sierra Vera',
+                'email'    => 'roberto30589@gmail.com',
+                'password' => Hash::make('3353089Ro$.'),
+            ]
+        );
+
+        if (! $adminUser->hasRole('administrador')) {
+            $adminUser->assignRole($adminRole);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | (Opcional) Usuario Conductor de prueba
@@ -56,5 +69,8 @@ class DatabaseSeeder extends Seeder
         if (! $driverUser->hasRole('conductor')) {
             $driverUser->assignRole($driverRole);
         }
+
+
+        $this->call(MachineTypeSeeder::class);
     }
 }
