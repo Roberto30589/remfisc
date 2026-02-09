@@ -1,29 +1,28 @@
 se esta usando, Laravel, Vue, Mysql, con Breeze, Spatie 
 
-Seeder de roles de usuario
-- administrador, Conductor
+//Seeder de roles de usuario (administrador, Conductor)
 
 Modifica modelo, migracion y controlador de User
--agregar rut a migracion y modelo de usuario (UNICO string(12))
+//agregar rut a migracion y modelo de usuario (UNICO string(12))
 -agregar softdelete a migracion y modelo
--seeder de usuario de prueba
+//-seeder de usuario de prueba
 -Formulario de creacion de usuarios
 -Roles de usaurio en formulario
 
-Cambiar login por mail por rut
--configurar el login para rut y clave
+//Cambiar login por mail por rut
+//-configurar el login para rut y clave
 -cambiar la vista del login 
 
-Crear modelo, migracion de machine_type[tipos de maquinas] (id,name) //sail php artisan make:model MachineType -ms
--crear migracion y seeder
--configurar modelo
+//Crear modelo, migracion de machine_type[tipos de maquinas] (id,name) //sail php artisan make:model MachineType -ms
+//crear migracion y seeder
+//configurar modelo
 
-Crear modelo, migracion y controlador de Machines[maquinarias] (id,internal_id, plate, name, machine_type_id, fuel_type, fuel_capacity) //sail php artisan make:model Machine -a
+//Crear modelo, migracion y controlador de Machines[maquinarias] (id,internal_id, plate, name, machine_type_id, fuel_type, fuel_capacity) //sail php artisan make:model Machine -a
 -Crear CRUD en controlador (para eliminar usar Softdelete)
 -Crear formulario de ingreso y edicion (Usar el mismo archivo no uno para crear y otro para editar)
 -Crear Listado
 
-Crear modelo, migracion y controlador de Project[obras] (id, name, internal_id, region, comuna, started_at, planned_finish_at, actual_finish_at)
+//Crear modelo, migracion y controlador de Project[obras] (id, name, internal_id, region, comuna, started_at, planned_finish_at, actual_finish_at)
 -Crear CRUD en controlador (para eliminar usar Softdelete)
 -Crear formulario de ingreso y edicion (Usar el mismo archivo no uno para crear y otro para editar)
 -Crear Listado

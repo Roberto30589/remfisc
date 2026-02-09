@@ -2,26 +2,21 @@
 import AppMain from '@/Layouts/AppMain.vue';
 import { Head } from '@inertiajs/vue3';
 import UserForm from './Form.vue';
-
-defineProps({
-    user: Object,
-});
 </script>
 
 <template>
-    <Head title="Editar Usuario" />
+    <Head title="Crear Usuario" />
 
     <AppMain>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                Editar Usuario
+                Crear Usuario
             </h2>
         </template>
 
         <UserForm
-            :user="user"
-            :submitRoute="route('admin.users.update', user.id)"
-            method="put"
+            :submitRoute="route('admin.users.create')"
+            method="post"
         />
     </AppMain>
 </template>

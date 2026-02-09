@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'auth' => [
                 'user' => fn () => $request->user()
-                    ? $request->user()->only('id', 'name', 'email')
+                    ? $request->user()->only('id', 'name', 'email', 'rut')
                     : null,
                 'roles' => fn () => $request->user()
                     ? $request->user()->getRoleNames() // Método nativo de Spatie más limpio

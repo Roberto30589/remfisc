@@ -134,13 +134,13 @@
                 <FontAwesomeIcon :icon="faHouse" size="lg" class="min-w-6 pr-2" />
                 Panel Inicial
             </AsideLink>
-
             
             <AsideDropdown :aside="showingNavigationDropdown" :active="route().current('admin.*')" :open="route().current('admin.*')">
                 <template #trigger >
                     <FontAwesomeIcon :icon="faGear" size="lg" class="min-w-6 pr-2" />
                     Administración
                 </template>
+
                 <template #content>
                     <AsideDropdownLink :href="route('admin.users')" :active="route().current('admin.users')">
                         <FontAwesomeIcon :icon="faUsers" size="lg" class="min-w-7 pr-1" />
@@ -154,9 +154,19 @@
             </AsideDropdown>
         </div>
     </aside>
+
+    <!-- HEADER SLOT -->
+    <div v-if="$slots.header" class="pt-12">
+        <div class="bg-white shadow py-6 px-4 sm:px-6 lg:px-8">
+            <slot name="header" />
+        </div>
+    </div>
+
     <!-- Page Content -->
-    <main class="pt-12 min-h-screen overflow-x-auto transition-margin-left duration-300" :class="{'ms-0 sm:ms-10': showingNavigationDropdown, 'ms-0 sm:ms-52': ! showingNavigationDropdown }">
+    <main class="pt-4 min-h-screen overflow-x-auto transition-margin-left duration-300"
+          :class="{'ms-0 sm:ms-10': showingNavigationDropdown, 'ms-0 sm:ms-52': ! showingNavigationDropdown }">
         <slot />
     </main>
+
     <ToastContainer/>
 </template>
