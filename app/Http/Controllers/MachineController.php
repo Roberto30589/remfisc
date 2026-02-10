@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Yajra\DataTables\DataTables;
-
 use App\Http\Requests\StoreMachineRequest;
 use App\Http\Requests\UpdateMachineRequest;
 use App\Models\Machine;
 use App\Models\MachineType;
+
 
 class MachineController extends Controller
 {
@@ -26,12 +27,26 @@ class MachineController extends Controller
             'types' => MachineType::all(),
         ]);
     }
+  public function table(Request $request)
+{
+    $machines = Machine::with('type');
 
-    public function table(Request $request)
-    {
-        $machines = Machine::with('type');
-        return DataTables::of($machines)->make(true);
+    // Filtrar por deleted_at
+    if (!$request->boolean('show_deleted')) {
+        $machines->whereNull('deleted_at');
+    } else {
+        $machines->withTrashed();
     }
+
+    return DataTables::of($machines)
+        ->addColumn('deleted', function ($machine) {
+            return $machine->deleted_at ? true : false;
+        })
+        ->make(true);
+}
+
+
+
 
     public function edit($id)
     {

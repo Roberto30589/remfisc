@@ -11,16 +11,16 @@ Modifica modelo, migracion y controlador de User
 
 //Cambiar login por mail por rut
 //-configurar el login para rut y clave
--cambiar la vista del login 
+//-cambiar la vista del login 
 
 //Crear modelo, migracion de machine_type[tipos de maquinas] (id,name) //sail php artisan make:model MachineType -ms
 //crear migracion y seeder
 //configurar modelo
 
 //Crear modelo, migracion y controlador de Machines[maquinarias] (id,internal_id, plate, name, machine_type_id, fuel_type, fuel_capacity) //sail php artisan make:model Machine -a
--Crear CRUD en controlador (para eliminar usar Softdelete)
--Crear formulario de ingreso y edicion (Usar el mismo archivo no uno para crear y otro para editar)
--Crear Listado
+//-Crear CRUD en controlador (para eliminar usar Softdelete)
+//-Crear formulario de ingreso y edicion (Usar el mismo archivo no uno para crear y otro para editar)
+//-Crear Listado
 
 //Crear modelo, migracion y controlador de Project[obras] (id, name, internal_id, region, comuna, started_at, planned_finish_at, actual_finish_at)
 -Crear CRUD en controlador (para eliminar usar Softdelete)

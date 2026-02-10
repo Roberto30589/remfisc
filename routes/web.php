@@ -16,13 +16,9 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMINISTRACIÓN
-    |--------------------------------------------------------------------------
-    */
+   //    ADMINISTRACIÓN
     Route::prefix('admin')->name('admin.')->group(function () {
-
+        
         // CRUD Usuarios
         Route::prefix('users')->name('users.')->group(function () {
             Route::get('/',[UserController::class, 'index'])->name('index');
@@ -42,7 +38,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/edit/{id}', [MachineController::class, 'edit'])->name('edit');
             Route::post('/create', [MachineController::class, 'create'])->name('create');
             Route::put('/update/{id}', [MachineController::class, 'update'])->name('update');
-            Route::delete('/delete/{id}', [MachineController::class, 'delete'])->name('delete');
+            Route::delete('/delete/{id}', [MachineController::class, 'destroy'])->name('destroy');
         });
 
 
