@@ -2,27 +2,52 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreProjectRequest;
-use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Yajra\DataTables\DataTables;
 
 class ProjectController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Projects/Index', [
-            'projects' => Project::paginate(10),
-        ]);
+        return Inertia::render('Project/Index');
     }
 
-    public function create()
+    public function add()
     {
-        return Inertia::render('Projects/Form', [
+        return Inertia::render('Project/Form', [
             'project' => null,
         ]);
     }
 
-    public function store(Request $request)
+    public function edit($id)
+    {
+        $project = Project::findOrFail($id);
+
+        return Inertia::render('Project/Form', [
+            'project' => $project,
+        ]);
+    }
+
+    public function table(Request $request)
+    {
+        $projects = Project::query();
+
+        if (!$request->boolean('show_deleted')) {
+            $projects->whereNull('deleted_at');
+        } else {
+            $projects->withTrashed();
+        }
+
+        return DataTables::of($projects)
+            ->addColumn('deleted', function ($project) {
+                return $project->deleted_at ? true : false;
+            })
+            ->make(true);
+    }
+
+    public function create(Request $request)
     {
         $data = $request->validate([
             'name' => 'required',
@@ -36,18 +61,14 @@ class ProjectController extends Controller
 
         Project::create($data);
 
-        return redirect()->route('projects.index');
+        return redirect()
+            ->route('projects.index')
+            ->with('success', 'Proyecto creado correctamente');
     }
-
-    public function edit(Project $project)
+    public function update(Request $request, $id)
     {
-        return Inertia::render('Projects/Form', [
-            'project' => $project,
-        ]);
-    }
+        $project = Project::findOrFail($id);
 
-    public function update(Request $request, Project $project)
-    {
         $data = $request->validate([
             'name' => 'required',
             'internal_id' => 'required|unique:projects,internal_id,' . $project->id,
@@ -60,13 +81,16 @@ class ProjectController extends Controller
 
         $project->update($data);
 
-        return redirect()->route('projects.index');
+        return redirect()
+            ->route('projects.index')
+            ->with('success', 'Proyecto actualizado correctamente');
     }
 
-    public function destroy(Project $project)
+    public function destroy($id)
     {
+        $project = Project::findOrFail($id);
         $project->delete();
-        return back();
+
+        return back()->with('success', 'Proyecto eliminado correctamente');
     }
 }
-

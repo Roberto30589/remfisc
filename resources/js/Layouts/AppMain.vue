@@ -10,7 +10,7 @@
     import AsideLink from '@/Components/AsideLink.vue';
     
     import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-    import { faUser,faHouse,faTruck, faUsers, faGear} from '@fortawesome/free-solid-svg-icons'
+    import { faUser,faHouse,faTruck, faUsers, faGear, faRoad} from '@fortawesome/free-solid-svg-icons'
 
     import ToastContainer from '@/Components/ToastContainer.vue';
     import toast from '@/Stores/toast';
@@ -134,6 +134,12 @@
                 <FontAwesomeIcon :icon="faHouse" size="lg" class="min-w-6 pr-2" />
                 Panel Inicial
             </AsideLink>
+            <AsideLink :href="route('projects.index')" :active="route().current('projects.*')">
+                <FontAwesomeIcon :icon="faRoad" size="lg" class="min-w-6 pr-2" />
+
+                Obras
+            </AsideLink>
+            
             
             <AsideDropdown :aside="showingNavigationDropdown" :active="route().current('admin.*')" :open="route().current('admin.*')">
                 <template #trigger >

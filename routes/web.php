@@ -18,7 +18,7 @@ Route::middleware('auth')->group(function () {
 
    //    ADMINISTRACIÓN
     Route::prefix('admin')->name('admin.')->group(function () {
-        
+
         // CRUD Usuarios
         Route::prefix('users')->name('users.')->group(function () {
             Route::get('/',[UserController::class, 'index'])->name('index');
@@ -42,6 +42,16 @@ Route::middleware('auth')->group(function () {
         });
 
 
+    });
+
+    Route::prefix('projects')->name('projects.')->group(function () {
+        Route::get('/', [ProjectController::class, 'index'])->name('index');
+        Route::get('/table', [ProjectController::class, 'table'])->name('table');
+        Route::get('/add', [ProjectController::class, 'add'])->name('add');
+        Route::get('/edit/{id}', [ProjectController::class, 'edit'])->name('edit');
+        Route::post('/create', [ProjectController::class, 'create'])->name('create');
+        Route::put('/update/{id}', [ProjectController::class, 'update'])->name('update');
+        Route::delete('/delete/{id}', [ProjectController::class, 'destroy'])->name('destroy');
     });
 
     //PERFIL USUARIO
