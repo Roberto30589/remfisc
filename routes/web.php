@@ -3,6 +3,7 @@
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MachineController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\DailyReportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -53,6 +54,18 @@ Route::middleware('auth')->group(function () {
         Route::put('/update/{id}', [ProjectController::class, 'update'])->name('update');
         Route::delete('/delete/{id}', [ProjectController::class, 'destroy'])->name('destroy');
     });
+
+        Route::prefix('daily-reports')->name('daily-reports.')->group(function () {
+        Route::get('/', [DailyReportController::class, 'index'])->name('index');
+        Route::get('/table', [DailyReportController::class, 'table'])->name('table');
+        Route::post('/create', [DailyReportController::class, 'create'])->name('create');
+        Route::get('/add', [DailyReportController::class, 'add'])->name('add');
+        Route::get('/show/{dailyReport}', [DailyReportController::class, 'show'])->name('show');
+        Route::put('/update/{dailyReport}', [DailyReportController::class, 'update'])->name('update');
+        Route::delete('/destroy/{dailyReport}', [DailyReportController::class, 'destroy'])->name('destroy');
+
+    });
+
 
     //PERFIL USUARIO
     Route::get('/profile', [UserController::class, 'edit'])->name('profile.edit');

@@ -27,7 +27,7 @@ se esta usando, Laravel, Vue, Mysql, con Breeze, Spatie
 //-Crear formulario de ingreso y edicion (Usar el mismo archivo no uno para crear y otro para editar)
 //-Crear Listado
 
-Crear modelo, migracion y controlador de DailyReport[reportes diarios] (id,user_id,project_id,machine_id, date, initial_km, final_km, initial_hm, final_hm, work_description, fuel_quantity, fuel_observation)
--en el modelo como usamos softdelete en las relaciones usar "->withTrashed();"
+//Crear modelo, migracion y controlador de DailyReport[reportes diarios] (id,user_id,project_id,machine_id, date, initial_km, final_km, initial_hm, final_hm, work_description, fuel_quantity, fuel_observation)
+//-en el modelo como usamos softdelete en las relaciones usar "->withTrashed();"
 
 

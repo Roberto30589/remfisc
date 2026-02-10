@@ -8,16 +8,14 @@
     import AsideDropdownLink from '@/Components/AsideDropdownLink.vue';
     import DropdownLink from '@/Components/DropdownLink.vue';
     import AsideLink from '@/Components/AsideLink.vue';
-    
     import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-    import { faUser,faHouse,faTruck, faUsers, faGear, faRoad} from '@fortawesome/free-solid-svg-icons'
-
+    import { faUser,faHouse,faTruck, faUsers, faGear, faRoad, faClipboardList} from '@fortawesome/free-solid-svg-icons'
     import ToastContainer from '@/Components/ToastContainer.vue';
     import toast from '@/Stores/toast';
-
     import { usePermission } from '@/Composables/permission';
-    const { hasRole , hasPermission, hasPermissions } = usePermission();
 
+
+    const { hasRole , hasPermission, hasPermissions } = usePermission();
     defineProps({
         title: String,
     });
@@ -136,8 +134,11 @@
             </AsideLink>
             <AsideLink :href="route('projects.index')" :active="route().current('projects.*')">
                 <FontAwesomeIcon :icon="faRoad" size="lg" class="min-w-6 pr-2" />
-
                 Obras
+            </AsideLink>
+            <AsideLink :href="route('daily-reports.index')" :active="route().current('daily-reports.*')">
+                <FontAwesomeIcon :icon="faClipboardList" size="lg" class="min-w-6 pr-2" />
+                Reportes Diarios
             </AsideLink>
             
             

@@ -1,82 +1,154 @@
 <script setup>
-import AppMain from '@/Layouts/AppMain.vue';
-
-import DataTable from 'datatables.net-vue3';
-import DataTablesCore from 'datatables.net-dt';
-import { DataTableEs } from '@/Composables/datatableEs.js';
-
-import ButtonGroup from '@/Components/ButtonGroup.vue';
-import ButtonColor from '@/Components/ButtonColor.vue';
-
+import AppMain from '@/Layouts/AppMain.vue'
+import ButtonColor from '@/Components/ButtonColor.vue'
+import ButtonGroup from '@/Components/ButtonGroup.vue'
+import { Head, router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faAdd, faFile, faPen, faUserShield } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faTrash } from '@fortawesome/free-solid-svg-icons'
+import DataTable from 'datatables.net-vue3'
+import DataTablesCore from 'datatables.net-dt'
+import 'datatables.net-responsive-dt'
+import { DataTableEs } from '@/Composables/datatableEs.js'
+import Swal from 'sweetalert2'
+import { onMounted, ref } from 'vue'
 
-import {onMounted, ref} from "vue";
+DataTable.use(DataTablesCore)
 
-import { usePermission } from '@/Composables/permission';
-
-const { hasRoles, hasPermission } = usePermission();
-
-DataTable.use(DataTablesCore);
 const columns = [
-  { data: 'id', title: 'Nº',width:'1%' },
-  { data: 'worker.name', title: 'Trabajador' },
-  { data: 'supervisor.name', title: 'Supervisor' },
-  { data: 'created_at', render: '#fecha', title: 'Fecha' },
-  { data: null,render: '#action', title: 'Acción',width:'1%',className: 'px-4' }
-];
+    { data: 'id', title: 'Nº', width: '1%' },
+    { data: 'date', title: 'Fecha' },
+    { data: 'user_name', title: 'Usuario' },
+    { data: 'project_name', title: 'Proyecto' },
+    { data: 'machine_plate', title: 'Patente' },
+    { data: 'machine_name', title: 'Maquinaria' },
+    {
+        data: null,
+        render: '#action',
+        title: 'Acción',
+        width: '1%',
+        className: 'ip-0',
+        responsivePriority: 1
+    }
+]
 
-let dt;
-const table = ref();
- 
+let dt
+const table = ref()
+
+const dt_options = {
+    responsive: true,
+    serverSide: true,
+    language: DataTableEs,
+}
+
 onMounted(() => {
-    dt = table.value.dt;
-});
+    dt = table.value.dt
+})
+
+const deleting = ref(false)
+
+const deleteReport = (id) => {
+    if (deleting.value) return
+
+    Swal.fire({
+        title: '¿Eliminar reporte diario?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            deleting.value = true
+
+            router.delete(route('daily-reports.destroy', { dailyReport: id }), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Reporte eliminado',
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+
+                    dt.ajax.reload(null, false)
+                },
+                onFinish: () => {
+                    deleting.value = false
+                },
+                onError: () => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo eliminar el reporte'
+                    })
+                }
+            })
+        }
+    })
+}
 </script>
+
 <template>
-    <AppMain title="Plantas">
-        <div class="bg-white w-max sm:w-auto mx-auto max-w-7xl my-2 p-2 rounded shadow">
-            <div class="flex flex-row items-center" >
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight grow">
-                    <FontAwesomeIcon :icon="faUserShield" class="pe-2"/>
-                    Listado Entregas de EPP
+    <Head title="Reportes diarios" />
+
+    <AppMain>
+        <template #header>
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-800">
+                    Reportes diarios
                 </h2>
-                <ButtonColor color="green" :href="route('eppcontrols/add')" v-if="hasPermission('eppcontrol.Create')" class="bg-green-600 text-white px-2 py-1 rounded">
-                    <FontAwesomeIcon :icon="faAdd" class="size-4 sm:pe-2"/>  
-                    <span class="hidden sm:inline">Entregar EPP</span>
+
+                <!-- OJO: esta ruta EXISTE -->
+                <ButtonColor
+                    color="green"
+                    :href="route('daily-reports.add')"
+                >
+                    Crear reporte
                 </ButtonColor>
             </div>
-            <DataTable :ajax="route('eppcontrols/table')" :columns="columns" ref="table" :options="{select: true,serverSide: true,language:DataTableEs,order: [[0, 'desc']]}" class="display cell-border compact">
-                <template #fecha="props">
-                    {{ new Date(props.rowData.created_at).toLocaleDateString().replaceAll('-', '/') }}
-                </template>
-                <template #action="props">                    
-                    <ButtonGroup>
-                        <ButtonColor color="teal"
-                            :href="route('eppcontrols/infos', { worker_id: props.rowData.worker.id, date: props.rowData.created_at })"
-                            title="Informe"
-                            target="_blank"
-                            >
-                            <FontAwesomeIcon :icon="faFile" class="size-4"/>
-                        </ButtonColor>
-                        <ButtonColor color="blue"  
-                            v-if="hasPermission('eppcontrol.Update') && props.rowData.supervisor_id == null"
-                            :href="route('eppcontrols/select', { id: props.rowData.id })"
-                            title="Editar"
-                            >
-                            <FontAwesomeIcon :icon="faPen" class="size-4"/>
-                        </ButtonColor>
-                    </ButtonGroup>
-                </template>
-            </DataTable>
+        </template>
+
+        <div class="py-4">
+            <div class="mx-auto max-w-7xl">
+                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg p-4">
+
+                    <DataTable
+                        :ajax="route('daily-reports.table')"
+                        :columns="columns"
+                        :options="dt_options"
+                        ref="table"
+                        class="cell-border compact"
+                    >
+                        <template #action="props">
+                            <ButtonGroup>
+
+                                <!-- Ver -->
+                                <ButtonColor
+                                    color="blue"
+                                    :href="route('daily-reports.show', { dailyReport: props.rowData.id })"
+                                    title="Ver reporte"
+                                >
+                                    <FontAwesomeIcon :icon="faEye" class="size-4" />
+                                </ButtonColor>
+
+                                <!-- Eliminar -->
+                                <ButtonColor
+                                    type="button"
+                                    color="red"
+                                    title="Eliminar"
+                                    :disabled="deleting"
+                                    class="disabled:opacity-40 disabled:cursor-not-allowed"
+                                    @mousedown.stop="deleteReport(props.rowData.id)"
+                                >
+                                    <FontAwesomeIcon :icon="faTrash" class="size-4" />
+                                </ButtonColor>
+
+                            </ButtonGroup>
+                        </template>
+                    </DataTable>
+
+                </div>
+            </div>
         </div>
     </AppMain>
 </template>
-<style scoped>
-    table {
-        border-collapse: collapse;
-    }
-    th, td {
-        text-align: left;
-    }
-</style>
