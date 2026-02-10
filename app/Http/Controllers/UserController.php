@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Yajra\DataTables\Facades\DataTables;
 
 use App\Models\User;
 use App\Models\Shift;
@@ -12,10 +13,6 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    /* =========================
-     * VISTAS
-     * ========================= */
-
     public function index()
     {
         return Inertia::render('User/Index');
@@ -29,18 +26,19 @@ class UserController extends Controller
         ]);
     }
 
-    public function select(User $user)
+    /**
+     * /admin/users/edit/{id}
+     */
+    public function edit($id)
     {
+        $user = User::with('roles', 'shifts')->findOrFail($id);
+
         return Inertia::render('User/Form', [
-            'user'   => $user->load('roles', 'shifts'),
+            'user'   => $user,
             'roles'  => Role::all(),
             'shifts' => Shift::all(),
         ]);
     }
-
-    /* =========================
-     * DATATABLE
-     * ========================= */
 
     public function table()
     {
@@ -49,10 +47,6 @@ class UserController extends Controller
                 ->select('id', 'rut', 'name', 'email', 'created_at')
         )->make(true);
     }
-
-    /* =========================
-     * STORE
-     * ========================= */
 
     public function store(Request $request)
     {
@@ -66,16 +60,17 @@ class UserController extends Controller
         $user->shifts()->sync($validated['shifts'] ?? []);
 
         return redirect()
-            ->route('users')
+            ->route('admin.users.index')
             ->with('success', 'Usuario creado correctamente');
     }
 
-    /* =========================
-     * UPDATE
-     * ========================= */
-
-    public function update(Request $request, User $user)
+    /**
+     * /admin/users/update/{id}
+     */
+    public function update(Request $request, $id)
     {
+        $user = User::findOrFail($id);
+
         $validated = $this->validateUser($request, $user->id);
 
         if ($request->boolean('updatePassword')) {
@@ -90,26 +85,22 @@ class UserController extends Controller
         $user->shifts()->sync($validated['shifts'] ?? []);
 
         return redirect()
-            ->route('users')
+            ->route('admin.users.index')
             ->with('success', 'Usuario actualizado correctamente');
     }
 
-    /* =========================
-     * DELETE (SoftDelete)
-     * ========================= */
-
-    public function delete(User $user)
+    /**
+     * /admin/users/delete/{id}
+     */
+    public function delete($id)
     {
+        $user = User::findOrFail($id);
         $user->delete();
 
         return redirect()
-            ->route('users')
+            ->route('admin.users.index')
             ->with('success', 'Usuario eliminado correctamente');
     }
-
-    /* =========================
-     * VALIDACIÓN CENTRALIZADA
-     * ========================= */
 
     private function validateUser(Request $request, ?int $userId = null): array
     {
