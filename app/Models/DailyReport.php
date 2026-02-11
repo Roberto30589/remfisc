@@ -23,11 +23,6 @@ class DailyReport extends Model
         'fuel_observation',
     ];
 
-    protected $casts = [
-        'date' => 'date',
-    ];
-
-
     public function user()
     {
         return $this->belongsTo(User::class)->withTrashed();

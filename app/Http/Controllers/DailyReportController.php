@@ -105,14 +105,7 @@ class DailyReportController extends Controller
             $reports->withTrashed();
         }
 
-        return DataTables::of($reports)
-            ->addColumn('user_name', fn ($r) => $r->user?->name)
-            ->addColumn('project_name', fn ($r) => $r->project?->name)
-            ->addColumn('machine_plate', fn ($r) => $r->machine?->plate)
-            ->addColumn('machine_name', fn ($r) => $r->machine?->name)
-
-            ->addColumn('deleted', fn ($r) => $r->deleted_at ? true : false)
-            ->make(true);
+        return DataTables::of($reports)->make(true);
     }
 
     public function show(DailyReport $dailyReport)

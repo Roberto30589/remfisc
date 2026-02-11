@@ -20,7 +20,7 @@ const columns = [
     { data: 'plate', title: 'Patente' },
     { data: 'type.name', title: 'Tipo' },
     { data: 'fuel_type', title: 'Tipo de Combustible'},
-    { data: null,render: '#action', title: 'Acción',width:'1%', className: 'ip-0',responsivePriority: 1}
+    { data: null,render: '#action', title: 'Acción',width:'1%', className: 'ip-0',responsivePriority: 1, orderable: false }
 ];
 let dt;
 const table = ref();

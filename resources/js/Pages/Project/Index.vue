@@ -27,7 +27,7 @@ const columns = [
         title: 'Acción',
         width: '1%',
         className: 'ip-0',
-        responsivePriority: 1
+        responsivePriority: 1, orderable: false
     }
 ]
 
@@ -121,7 +121,7 @@ const deleteProject = (id, name) => {
                                     color="blue"
                                     :href="route('projects.edit', props.rowData.id)"
                                 >
-                                    <FontAwesomeIcon :icon="faPen" />
+                                    <FontAwesomeIcon :icon="faPen" class="size-4"/>
                                 </ButtonColor>
 
                                 <ButtonColor
@@ -129,7 +129,7 @@ const deleteProject = (id, name) => {
                                     :disabled="props.rowData.deleted"
                                     @click="deleteProject(props.rowData.id, props.rowData.name)"
                                 >
-                                    <FontAwesomeIcon :icon="faTrash" />
+                                    <FontAwesomeIcon :icon="faTrash" class="size-4"/>
                                 </ButtonColor>
                             </ButtonGroup>
                         </template>

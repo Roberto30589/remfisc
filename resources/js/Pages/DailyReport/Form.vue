@@ -6,6 +6,8 @@ import ButtonColor from '@/Components/ButtonColor.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
+import SelectInput from '@/Components/SelectInput.vue'
+import ApplicationLogo from '@/Components/ApplicationLogo.vue'
 
 const props = defineProps({
     dailyReport: Object,
@@ -38,87 +40,118 @@ const submit = () => {
 <template>
     <AppMain>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            <h2 class="text-xl font-semibold leading-tight text-gray-800 text-center">
                 {{ props.dailyReport ? 'Editar Reporte Diario' : 'Crear Reporte Diario' }}
             </h2>
         </template>
 
         <div class="max-w-3xl mx-auto mt-6 p-4 bg-white shadow-md rounded">
-            <form @submit.prevent="submit" class="space-y-4">
-
+            <div class="grid grid-cols-2 gap-2">
+                <ApplicationLogo class="mx-auto mb-4 w-auto h-20" />
+                <div class="text-center text-green-600 mb-6 font-bold text-lg self-center">
+                    {{ props.dailyReport ? 'Nº' + props.dailyReport.id : 'Sin Guardar' }}
+                </div>
+            </div>
+            <h2 class="text-center text-gray-800 font-bold text-2xl mb-6">
+                REPORTE DIARIO DE MAQUINARIA
+            </h2>
+            <form @submit.prevent="submit" class="grid grid-cols-2 gap-4">
+                <div>
+                    <InputLabel value="Usuario" />
+                    <TextInput v-model="user.name" class="w-full bg-gray-100 cursor-not-allowed" disabled />
+                </div>
                 <!-- Obra -->
                 <div>
                     <InputLabel value="Obra" />
-                    <select v-model="form.project_id" class="input">
+                    <SelectInput v-model="form.project_id" class="w-full">
                         <option :value="null" disabled>Seleccione un Obra</option>
                         <option v-for="p in props.projects" :key="p.id" :value="p.id">
                             {{ p.name }}
                         </option>
-                    </select>
+                    </SelectInput>
                     <InputError :message="form.errors.project_id" />
                 </div>
 
                 <!-- Máquina -->
                 <div>
                     <InputLabel value="Maquinaria" />
-                    <select v-model="form.machine_id" class="input">
+                    <SelectInput v-model="form.machine_id" class="w-full">
                         <option :value="null" disabled>Seleccione una maquinaria</option>
                         <option v-for="m in props.machines" :key="m.id" :value="m.id">
                             {{ m.plate }} - {{ m.name }}
                         </option>
-                    </select>
+                    </SelectInput>
                     <InputError :message="form.errors.machine_id" />
                 </div>
 
                 <!-- Fecha -->
                 <div>
                     <InputLabel value="Fecha" />
-                    <TextInput type="date" v-model="form.date" class="w-full" />
+                    <TextInput type="date" v-model="form.date"/>
                     <InputError :message="form.errors.date" />
                 </div>
 
                 <!-- KM -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <InputLabel value="KM Inicial" />
-                        <TextInput type="number" v-model="form.initial_km" />
+                <div class="grid grid-cols-3 gap-4 border rounded">
+                    <div class="col-span-3 text-center text-gray-800 text-sm font-bold">
+                        INDICAR KILOMETRAJE
                     </div>
                     <div>
-                        <InputLabel value="KM Final" />
-                        <TextInput type="number" v-model="form.final_km" />
+                        <InputLabel value="Inicial" />
+                        <TextInput type="number" v-model="form.initial_km" class="w-full"/>
+                    </div>
+                    <div>
+                        <InputLabel value="Final" />
+                        <TextInput type="number" v-model="form.final_km"  class="w-full"/>
+                    </div>
+                    <div>
+                        <InputLabel value="Total" />
+                        <TextInput type="number" v-model="form.total_km"  class="w-full"/>
                     </div>
                 </div>
 
                 <!-- HM -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <InputLabel value="HM Inicial" />
-                        <TextInput type="number" v-model="form.initial_hm" />
+                <div class="grid grid-cols-3 gap-4 border rounded">
+                    <div class="col-span-3 text-center text-gray-800 text-sm font-bold">
+                        INDICAR HOROMETRO
                     </div>
                     <div>
-                        <InputLabel value="HM Final" />
-                        <TextInput type="number" v-model="form.final_hm" />
+                        <InputLabel value="Inicial" />
+                        <TextInput type="number" v-model="form.initial_hm" class="w-full"/>
+                    </div>
+                    <div>
+                        <InputLabel value="Final" />
+                        <TextInput type="number" v-model="form.final_hm" class="w-full"/>
+                    </div>
+                    <div>
+                        <InputLabel value="Total" />
+                        <TextInput type="number" v-model="form.total_hm" class="w-full"/>
                     </div>
                 </div>
 
                 <!-- Trabajo -->
-                <div>
-                    <InputLabel value="Descripción del trabajo" />
-                    <textarea v-model="form.work_description" class="input"></textarea>
+                <div class="col-span-2">
+                    <InputLabel value="DESCRIPCION DE LOS TRABAJOS REALIZADOS" />
+                    <textarea v-model="form.work_description" class="w-full border-stone-300 focus:border-stone-500 focus:ring-stone-500 rounded-md shadow-sm bg-white"></textarea>
                 </div>
-
+                <hr class="col-span-2">
                 <!-- Combustible -->
-                <div>
-                    <InputLabel value="Cantidad combustible (L)" />
-                    <TextInput type="number" v-model="form.fuel_quantity" />
+                <div class="col-span-2">
+                    <h3 class="text-lg font-semibold mb-2 mt-0">Combustible</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <InputLabel value="Cantidad (L)" />
+                            <TextInput type="number" v-model="form.fuel_quantity" class="w-full"/>
+                        </div>
+
+                        <div class="col-span-2">
+                            <InputLabel value="Observación" />
+                            <TextInput v-model="form.fuel_observation" class="w-full"/>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <InputLabel value="Observación combustible" />
-                    <textarea v-model="form.fuel_observation" class="input"></textarea>
-                </div>
-
-                <div>
+                <div class="col-span-2 flex justify-center mt-4">
                     <ButtonColor type="submit" color="green">
                         {{ props.dailyReport ? 'Actualizar Reporte' : 'Crear Reporte' }}
                     </ButtonColor>

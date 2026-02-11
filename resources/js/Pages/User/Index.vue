@@ -22,14 +22,7 @@ const columns = [
   { data: 'rut', title: 'RUT' },
   { data: 'name', title: 'Nombre' },
   { data: 'email', title: 'Correo electrónico' },
-  {
-    data: null,
-    render: '#action',
-    title: 'Acción',
-    width: '1%',
-    className: 'ip-0',
-    responsivePriority: 1
-  }
+  { data: null,render: '#action', title: 'Acción',width:'1%', className: 'ip-0',responsivePriority: 1, orderable: false }
 ]
 
 let dt

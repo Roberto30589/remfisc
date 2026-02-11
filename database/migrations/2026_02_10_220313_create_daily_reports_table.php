@@ -36,6 +36,8 @@ return new class extends Migration
             $table->decimal('fuel_quantity', 10, 2)->nullable();
             $table->text('fuel_observation')->nullable();
 
+            $table->timestamp('finished_at')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
         });

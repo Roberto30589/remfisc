@@ -16,18 +16,18 @@ DataTable.use(DataTablesCore)
 
 const columns = [
     { data: 'id', title: 'Nº', width: '1%' },
-    { data: 'date', title: 'Fecha' },
-    { data: 'user_name', title: 'Usuario' },
-    { data: 'project_name', title: 'Proyecto' },
-    { data: 'machine_plate', title: 'Patente' },
-    { data: 'machine_name', title: 'Maquinaria' },
+    { data: 'date', render: '#fecha', title: 'Fecha' },
+    { data: 'user.name', title: 'Usuario' },
+    { data: 'project.name', title: 'Proyecto' },
+    { data: 'machine.plate', title: 'Patente' },
+    { data: 'machine.name', title: 'Maquinaria' },
     {
         data: null,
         render: '#action',
         title: 'Acción',
         width: '1%',
         className: 'ip-0',
-        responsivePriority: 1
+        responsivePriority: 1, orderable: false
     }
 ]
 
@@ -119,13 +119,16 @@ const deleteReport = (id) => {
                         ref="table"
                         class="cell-border compact"
                     >
+                        <template #fecha="props">
+                            {{ new Date(props.rowData.date).toLocaleDateString('es-CL').replace(/\-/g, '/') }}
+                        </template>
                         <template #action="props">
                             <ButtonGroup>
 
                                 <!-- Ver -->
                                 <ButtonColor
                                     color="blue"
-                                    :href="route('daily-reports.show', { dailyReport: props.rowData.id })"
+                                    :href="route('daily-reports.show', { id: props.rowData.id })"
                                     title="Ver reporte"
                                 >
                                     <FontAwesomeIcon :icon="faEye" class="size-4" />
