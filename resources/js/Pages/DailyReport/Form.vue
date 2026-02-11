@@ -8,6 +8,7 @@ import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue'
+import { computed } from 'vue'
 
 const props = defineProps({
     dailyReport: Object,
@@ -23,11 +24,21 @@ const form = useForm({
     date: props.dailyReport?.date ?? new Date().toISOString().slice(0,10),
     initial_km: props.dailyReport?.initial_km ?? null,
     final_km: props.dailyReport?.final_km ?? null,
+    total_km: props.dailyReport?.total_km ?? 0,
     initial_hm: props.dailyReport?.initial_hm ?? null,
     final_hm: props.dailyReport?.final_hm ?? null,
+    total_hm: props.dailyReport?.total_hm ?? 0,
     work_description: props.dailyReport?.work_description ?? '',
     fuel_quantity: props.dailyReport?.fuel_quantity ?? null,
     fuel_observation: props.dailyReport?.fuel_observation ?? '',
+})
+
+const totalKm = computed(() => {
+    return (form.final_km ?? 0) - (form.initial_km ?? 0)
+})
+
+const totalHm = computed(() => {
+    return (form.final_hm ?? 0) - (form.initial_hm ?? 0)
 })
 
 const submit = () => {
@@ -106,7 +117,8 @@ const submit = () => {
                     </div>
                     <div>
                         <InputLabel value="Total" />
-                        <TextInput type="number" v-model="form.total_km"  class="w-full"/>
+                        <TextInput type="number" v-model="totalKm" class="w-full bg-gray-100" readonly />
+
                     </div>
                 </div>
 
@@ -125,7 +137,7 @@ const submit = () => {
                     </div>
                     <div>
                         <InputLabel value="Total" />
-                        <TextInput type="number" v-model="form.total_hm" class="w-full"/>
+                        <TextInput type="number" v-model="totalHm" class="w-full bg-gray-100" readonly />
                     </div>
                 </div>
 

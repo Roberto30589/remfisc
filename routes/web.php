@@ -44,10 +44,9 @@ Route::middleware('auth')->group(function () {
             Route::put('/update/{id}', [MachineController::class, 'update'])->name('update');
             Route::delete('/delete/{id}', [MachineController::class, 'destroy'])->name('destroy');
         });
-    });
 
-    //Rutas Obras (USUARIOS)
-    Route::prefix('projects')->name('projects.')->group(function () {
+        //Rutas Obras (ADMIN)
+        Route::prefix('projects')->name('projects.')->group(function () {
         //vistas
         Route::get('/', [ProjectController::class, 'index'])->name('index');
         Route::get('/table', [ProjectController::class, 'table'])->name('table');
@@ -57,6 +56,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/create', [ProjectController::class, 'create'])->name('create');
         Route::put('/update/{id}', [ProjectController::class, 'update'])->name('update');
         Route::delete('/delete/{id}', [ProjectController::class, 'destroy'])->name('destroy');
+        });
+
     });
 
     //Rutas Reportes Diarios (USUARIOS)
@@ -65,7 +66,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [DailyReportController::class, 'index'])->name('index');
         Route::get('/table', [DailyReportController::class, 'table'])->name('table');
         Route::get('/add', [DailyReportController::class, 'add'])->name('add');
-        Route::get('/show/{id}', [DailyReportController::class, 'show'])->name('show');
+        Route::get('/edit/{id}', [DailyReportController::class, 'edit'])->name('edit');
         //CRUD
         Route::post('/create', [DailyReportController::class, 'create'])->name('create');
         Route::put('/update/{id}', [DailyReportController::class, 'update'])->name('update');

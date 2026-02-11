@@ -41,7 +41,7 @@ const dt_options = {
     processing: true,
     language: DataTableEs,
     ajax: {
-        url: route('projects.table'), 
+        url: route('admin.projects.table'), 
         data(d) {
             d.show_deleted = showDeleted.value
         }
@@ -68,7 +68,7 @@ const deleteProject = (id, name) => {
         if (result.isConfirmed) {
             deleting.value = true
 
-            router.delete(route('projects.destroy', id), {
+            router.delete(route('admin.projects.destroy', id), {
                 onSuccess: () => {
                     Swal.fire({
                         icon: 'success',
@@ -99,7 +99,7 @@ const deleteProject = (id, name) => {
 
                 <ButtonColor
                     color="green"
-                    :href="route('projects.add')"
+                    :href="route('admin.projects.add')"
                 >
                     Crear obra
                 </ButtonColor>
@@ -119,7 +119,7 @@ const deleteProject = (id, name) => {
                             <ButtonGroup>
                                 <ButtonColor
                                     color="blue"
-                                    :href="route('projects.edit', props.rowData.id)"
+                                    :href="route('admin.projects.edit', props.rowData.id)"
                                 >
                                     <FontAwesomeIcon :icon="faPen" class="size-4"/>
                                 </ButtonColor>

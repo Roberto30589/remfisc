@@ -41,50 +41,56 @@ class DailyReportController extends Controller
     public function create(Request $request)
     {
         $data = $request->validate([
-            'project_id'        => 'required|exists:projects,id',
-            'machine_id'        => 'required|exists:machines,id',
-            'date'              => 'required|date',
-            'initial_km'        => 'nullable|integer',
-            'final_km'          => 'nullable|integer',
-            'initial_hm'        => 'nullable|integer',
-            'final_hm'          => 'nullable|integer',
-            'work_description'  => 'nullable|string',
-            'fuel_quantity'     => 'nullable|numeric',
-            'fuel_observation'  => 'nullable|string',
+            'project_id' => 'required|exists:projects,id',
+            'machine_id' => 'required|exists:machines,id',
+            'date' => 'required|date',
+            'initial_km' => 'nullable|numeric',
+            'final_km' => 'nullable|numeric',
+            'initial_hm' => 'nullable|numeric',
+            'final_hm' => 'nullable|numeric',
+            'work_description' => 'nullable|string',
+            'fuel_quantity' => 'nullable|numeric',
+            'fuel_observation' => 'nullable|string',
         ]);
 
-        $data['user_id'] = auth()->id();
+        // 🔥 CALCULAR AUTOMÁTICAMENTE
+        $data['total_km'] = ($data['final_km'] ?? 0) - ($data['initial_km'] ?? 0);
+        $data['total_hm'] = ($data['final_hm'] ?? 0) - ($data['initial_hm'] ?? 0);
 
         DailyReport::create($data);
 
-        return redirect()
-            ->route('daily-reports.index')
-            ->with('success', 'Reporte diario creado correctamente');
+        return redirect()->route('daily-reports.index')
+            ->with('success', 'Reporte creado correctamente');
     }
+
 
     public function update(Request $request, $id)
-    {
-        $dailyReport = DailyReport::findOrFail($id);
+{
+    $report = DailyReport::findOrFail($id);
 
-        $data = $request->validate([
-            'project_id'        => 'required|exists:projects,id',
-            'machine_id'        => 'required|exists:machines,id',
-            'date'              => 'required|date',
-            'initial_km'        => 'nullable|integer',
-            'final_km'          => 'nullable|integer',
-            'initial_hm'        => 'nullable|integer',
-            'final_hm'          => 'nullable|integer',
-            'work_description'  => 'nullable|string',
-            'fuel_quantity'     => 'nullable|numeric',
-            'fuel_observation'  => 'nullable|string',
-        ]);
+    $data = $request->validate([
+        'project_id' => 'required|exists:projects,id',
+        'machine_id' => 'required|exists:machines,id',
+        'date' => 'required|date',
+        'initial_km' => 'nullable|numeric',
+        'final_km' => 'nullable|numeric',
+        'initial_hm' => 'nullable|numeric',
+        'final_hm' => 'nullable|numeric',
+        'work_description' => 'nullable|string',
+        'fuel_quantity' => 'nullable|numeric',
+        'fuel_observation' => 'nullable|string',
+    ]);
 
-        $dailyReport->update($data);
+    // recalcular 
+    $data['total_km'] = ($data['final_km'] ?? 0) - ($data['initial_km'] ?? 0);
+    $data['total_hm'] = ($data['final_hm'] ?? 0) - ($data['initial_hm'] ?? 0);
 
-        return redirect()
-            ->route('daily-reports.index')
-            ->with('success', 'Reporte diario actualizado correctamente');
-    }
+    $report->update($data);
+
+    return redirect()->route('daily-reports.index')
+        ->with('success', 'Reporte actualizado correctamente');
+}
+
 
     public function destroy($id)
     {
@@ -116,6 +122,5 @@ class DailyReportController extends Controller
             'dailyReport' => $dailyReport,
         ]);
     }
-
 
 }

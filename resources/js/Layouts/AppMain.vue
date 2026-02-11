@@ -132,10 +132,7 @@
                 <FontAwesomeIcon :icon="faHouse" size="lg" class="min-w-6 pr-2" />
                 Panel Inicial
             </AsideLink>
-            <AsideLink :href="route('projects.index')" :active="route().current('projects.*')">
-                <FontAwesomeIcon :icon="faRoad" size="lg" class="min-w-6 pr-2" />
-                Obras
-            </AsideLink>
+            
             <AsideLink :href="route('daily-reports.index')" :active="route().current('daily-reports.*')">
                 <FontAwesomeIcon :icon="faClipboardList" size="lg" class="min-w-6 pr-2" />
                 Reportes Diarios
@@ -149,13 +146,18 @@
                 </template>
 
                 <template #content>
-                    <AsideDropdownLink :href="route('admin.users.index')" :active="route().current('admin.users.index')">
-                        <FontAwesomeIcon :icon="faUsers" size="lg" class="min-w-7 pr-1" />
-                        Usuarios
-                    </AsideDropdownLink>
+
                     <AsideDropdownLink :href="route('admin.machines.index')" :active="route().current('admin.machines.index')">
                         <FontAwesomeIcon :icon="faTruck" size="lg" class="min-w-6 pr-2" />
                         Maquinas
+                    </AsideDropdownLink>
+                    <AsideDropdownLink :href="route('admin.projects.index')" :active="route().current('admin.projects.*')">
+                        <FontAwesomeIcon :icon="faRoad" size="lg" class="min-w-6 pr-2" />
+                        Obras
+                    </AsideDropdownLink>
+                    <AsideDropdownLink :href="route('admin.users.index')" :active="route().current('admin.users.index')">
+                        <FontAwesomeIcon :icon="faUsers" size="lg" class="min-w-7 pr-1" />
+                        Usuarios
                     </AsideDropdownLink>
                 </template>
             </AsideDropdown>

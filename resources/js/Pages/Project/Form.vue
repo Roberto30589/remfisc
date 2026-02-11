@@ -26,9 +26,9 @@ const form = useForm({
 
 const submit = () => {
     if (props.project) {
-        form.put(route('projects.update', props.project.id))
+        form.put(route('admin.projects.update', props.project.id))
     } else {
-        form.post(route('projects.create'))
+        form.post(route('admin.projects.create'))
     }
 }
 </script>

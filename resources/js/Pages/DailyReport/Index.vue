@@ -4,7 +4,7 @@ import ButtonColor from '@/Components/ButtonColor.vue'
 import ButtonGroup from '@/Components/ButtonGroup.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faEye, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-dt'
 import 'datatables.net-responsive-dt'
@@ -18,9 +18,9 @@ const columns = [
     { data: 'id', title: 'Nº', width: '1%' },
     { data: 'date', render: '#fecha', title: 'Fecha' },
     { data: 'user.name', title: 'Usuario' },
-    { data: 'project.name', title: 'Proyecto' },
-    { data: 'machine.plate', title: 'Patente' },
+    { data: 'project.name', title: 'Obra' },
     { data: 'machine.name', title: 'Maquinaria' },
+    { data: 'machine.plate', title: 'Patente' },
     {
         data: null,
         render: '#action',
@@ -60,7 +60,7 @@ const deleteReport = (id) => {
         if (result.isConfirmed) {
             deleting.value = true
 
-            router.delete(route('daily-reports.destroy', { dailyReport: id }), {
+            router.delete(route('daily-reports.destroy',id, { dailyReport: id }), {
                 preserveScroll: true,
                 onSuccess: () => {
                     Swal.fire({
@@ -125,14 +125,12 @@ const deleteReport = (id) => {
                         <template #action="props">
                             <ButtonGroup>
 
-                                <!-- Ver -->
                                 <ButtonColor
                                     color="blue"
-                                    :href="route('daily-reports.show', { id: props.rowData.id })"
-                                    title="Ver reporte"
+                                    :href="route('daily-reports.edit', props.rowData.id)"
                                 >
-                                    <FontAwesomeIcon :icon="faEye" class="size-4" />
-                                </ButtonColor>
+                                    <FontAwesomeIcon :icon="faPen" class="size-4" />
+                                </ButtonColor>  
 
                                 <!-- Eliminar -->
                                 <ButtonColor
