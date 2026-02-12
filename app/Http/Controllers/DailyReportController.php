@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Models\DailyReport;
 use App\Models\Project;
+use App\Models\User;
 use App\Models\Machine;
 
 class DailyReportController extends Controller
@@ -51,16 +52,18 @@ class DailyReportController extends Controller
             'work_description' => 'nullable|string',
             'fuel_quantity' => 'nullable|numeric',
             'fuel_observation' => 'nullable|string',
+            'total_km' => 'nullable|numeric',
+            'total_hm' => 'nullable|numeric',
         ]);
-
-        // 🔥 CALCULAR AUTOMÁTICAMENTE
+        // calcular totales
         $data['total_km'] = ($data['final_km'] ?? 0) - ($data['initial_km'] ?? 0);
         $data['total_hm'] = ($data['final_hm'] ?? 0) - ($data['initial_hm'] ?? 0);
 
-        DailyReport::create($data);
+        DailyReport::create([ ...$data,'user_id' => auth()->id(),]);
 
         return redirect()->route('daily-reports.index')
             ->with('success', 'Reporte creado correctamente');
+            
     }
 
 
@@ -79,6 +82,8 @@ class DailyReportController extends Controller
         'work_description' => 'nullable|string',
         'fuel_quantity' => 'nullable|numeric',
         'fuel_observation' => 'nullable|string',
+        'total_km' => 'nullable|numeric',
+        'total_hm' => 'nullable|numeric',
     ]);
 
     // recalcular 
