@@ -4,7 +4,7 @@ import ButtonColor from '@/Components/ButtonColor.vue'
 import ButtonGroup from '@/Components/ButtonGroup.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-dt'
 import 'datatables.net-responsive-dt'
@@ -126,11 +126,20 @@ const deleteReport = (id) => {
                             <ButtonGroup>
 
                                 <ButtonColor
+                                    v-if="props.rowData.finished_at === null"
                                     color="blue"
                                     :href="route('daily-reports.edit', props.rowData.id)"
                                 >
                                     <FontAwesomeIcon :icon="faPen" class="size-4" />
-                                </ButtonColor>  
+                                </ButtonColor>
+                                
+                                <ButtonColor
+                                    v-else
+                                    color="teal"
+                                    :href="route('daily-reports.report', props.rowData.id)"
+                                >
+                                    <FontAwesomeIcon :icon="faEye" class="size-4" />
+                                </ButtonColor>
 
                                 <!-- Eliminar -->
                                 <ButtonColor

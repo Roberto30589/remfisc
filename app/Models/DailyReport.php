@@ -23,6 +23,7 @@ class DailyReport extends Model
     'work_description',
     'fuel_quantity',
     'fuel_observation',
+    'finished_at',
 ];
 
 

@@ -10,6 +10,8 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Machine;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class DailyReportController extends Controller
 {
     // VISTAS REPORTES DIARIOS
@@ -68,33 +70,34 @@ class DailyReportController extends Controller
 
 
     public function update(Request $request, $id)
-{
-    $report = DailyReport::findOrFail($id);
+    {
+        $report = DailyReport::findOrFail($id);
 
-    $data = $request->validate([
-        'project_id' => 'required|exists:projects,id',
-        'machine_id' => 'required|exists:machines,id',
-        'date' => 'required|date',
-        'initial_km' => 'nullable|numeric',
-        'final_km' => 'nullable|numeric',
-        'initial_hm' => 'nullable|numeric',
-        'final_hm' => 'nullable|numeric',
-        'work_description' => 'nullable|string',
-        'fuel_quantity' => 'nullable|numeric',
-        'fuel_observation' => 'nullable|string',
-        'total_km' => 'nullable|numeric',
-        'total_hm' => 'nullable|numeric',
-    ]);
+        $data = $request->validate([
+            'project_id' => 'required|exists:projects,id',
+            'machine_id' => 'required|exists:machines,id',
+            'date' => 'required|date',
+            'initial_km' => 'nullable|numeric',
+            'final_km' => 'nullable|numeric',
+            'initial_hm' => 'nullable|numeric',
+            'final_hm' => 'nullable|numeric',
+            'work_description' => 'nullable|string',
+            'fuel_quantity' => 'nullable|numeric',
+            'fuel_observation' => 'nullable|string',
+            'total_km' => 'nullable|numeric',
+            'total_hm' => 'nullable|numeric',
+            'finished_at' => 'nullable|date_format:Y-m-d H:i:s',
+        ]);
 
-    // recalcular 
-    $data['total_km'] = ($data['final_km'] ?? 0) - ($data['initial_km'] ?? 0);
-    $data['total_hm'] = ($data['final_hm'] ?? 0) - ($data['initial_hm'] ?? 0);
+        // recalcular 
+        $data['total_km'] = ($data['final_km'] ?? 0) - ($data['initial_km'] ?? 0);
+        $data['total_hm'] = ($data['final_hm'] ?? 0) - ($data['initial_hm'] ?? 0);
 
-    $report->update($data);
+        $report->update($data);
 
-    return redirect()->route('daily-reports.index')
-        ->with('success', 'Reporte actualizado correctamente');
-}
+        return redirect()->route('daily-reports.index')
+            ->with('success', 'Reporte actualizado correctamente');
+    }
 
 
     public function destroy($id)
@@ -119,13 +122,16 @@ class DailyReportController extends Controller
         return DataTables::of($reports)->make(true);
     }
 
-    public function show(DailyReport $dailyReport)
+    public function report($id)
     {
+        $dailyReport = DailyReport::findOrFail($id);
         $dailyReport->load(['user', 'project', 'machine']);
 
-        return Inertia::render('DailyReport/Show', [
-            'dailyReport' => $dailyReport,
-        ]);
+        $data = ['title' => 'Daily Report '. $dailyReport->id, 'report' => $dailyReport];
+        $pdf = Pdf::loadView('report.daily_report', $data); // Load a view named 'pdf.document' and pass data
+
+        //return $pdf->download('document.pdf'); // Download the PDF file
+        return $pdf->stream('daily_report_'.$dailyReport->id.'.pdf');
     }
 
 }

@@ -31,20 +31,28 @@ const form = useForm({
     work_description: props.dailyReport?.work_description ?? '',
     fuel_quantity: props.dailyReport?.fuel_quantity ?? null,
     fuel_observation: props.dailyReport?.fuel_observation ?? '',
+    finished_at: props.dailyReport?.finished_at ?? null,
 })
 
 const totalKm = computed(() => {
-    return (form.final_km ?? 0) - (form.initial_km ?? 0)
+    //para calcular la diferencia final_km y initial_km deben ser mayores a 0
+    return form.final_km>0 && form.initial_km>0 ? form.final_km - form.initial_km : null;
 })
 
 const totalHm = computed(() => {
-    return (form.final_hm ?? 0) - (form.initial_hm ?? 0)
+    return form.final_hm>0 && form.initial_hm>0 ? form.final_hm - form.initial_hm : null;
 })
 
 const submit = () => {
     props.dailyReport
         ? form.put(route('daily-reports.update', props.dailyReport.id))
         : form.post(route('daily-reports.create'))
+}
+
+const finishReport = () => {
+    // para terminar el reporte se asigna la fecha actual a finished_at como timestamp 'YYYY-MM-DD HH:MM:SS'
+    form.finished_at = new Date().toISOString().slice(0,19).replace('T', ' ');
+    submit();
 }
 </script>
 
@@ -66,7 +74,7 @@ const submit = () => {
             <h2 class="text-center text-gray-800 font-bold text-2xl mb-6">
                 REPORTE DIARIO DE MAQUINARIA
             </h2>
-            <form @submit.prevent="submit" class="grid grid-cols-2 gap-4">
+            <form @submit.prevent="submit" class="flex flex-col sm:grid sm:grid-cols-2 gap-4">
                 <div>
                     <InputLabel value="Usuario" />
                     <TextInput v-model="user.name" class="w-full bg-gray-100 cursor-not-allowed" disabled />
@@ -137,7 +145,7 @@ const submit = () => {
                     </div>
                     <div>
                         <InputLabel value="Total" />
-                        <TextInput type="number" v-model="totalHm" class="w-full bg-gray-100" readonly />
+                        <TextInput type="number" v-model="totalHm" class="w-full bg-gray-100" :class="totalHm<0 ?? 'text-danger-600'" readonly />
                     </div>
                 </div>
 
@@ -163,9 +171,13 @@ const submit = () => {
                     </div>
                 </div>
 
-                <div class="col-span-2 flex justify-center mt-4">
+                <div class="col-span-2 flex justify-between mt-4">
                     <ButtonColor type="submit" color="green">
                         {{ props.dailyReport ? 'Actualizar Reporte' : 'Crear Reporte' }}
+                    </ButtonColor>
+                    
+                    <ButtonColor type="button" color="blue" v-if="props.dailyReport" @click="finishReport">
+                        Terminar reporte
                     </ButtonColor>
                 </div>
 

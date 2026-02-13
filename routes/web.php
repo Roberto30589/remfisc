@@ -67,6 +67,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/table', [DailyReportController::class, 'table'])->name('table');
         Route::get('/add', [DailyReportController::class, 'add'])->name('add');
         Route::get('/edit/{id}', [DailyReportController::class, 'edit'])->name('edit');
+        Route::get('/report/{id}', [DailyReportController::class, 'report'])->name('report');
         //CRUD
         Route::post('/create', [DailyReportController::class, 'create'])->name('create');
         Route::put('/update/{id}', [DailyReportController::class, 'update'])->name('update');
