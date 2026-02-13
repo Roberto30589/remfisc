@@ -22,10 +22,27 @@ class DailyReportController extends Controller
 
     public function add()
     {
+        // 1. Buscamos el último reporte una sola vez
+        $lastReport = DailyReport::where('user_id', auth()->id())
+            ->latest()
+            ->first();
+
+        $dailyReport = null;
+        $message = null;
+
+        // 2. Lógica de bifurcación
+        if ($lastReport && is_null($lastReport->finished_at)) {
+            $dailyReport = $lastReport;
+            $lastReport = null; // No pre-llenamos porque estamos editando el actual
+            $message = 'Tienes un reporte sin finalizar. Continuando desde donde quedaste.';
+        }
+
         return Inertia::render('DailyReport/Form', [
-            'dailyReport' => null,
+            'dailyReport' => $dailyReport,
+            'lastReport'  => $lastReport,
             'projects'    => Project::all(),
             'machines'    => Machine::all(),
+            'infoMessage' => $message, // Pasamos el texto para mostrar una alerta en Vue
         ]);
     }
 
@@ -112,6 +129,10 @@ class DailyReportController extends Controller
     public function table(Request $request)
     {
         $reports = DailyReport::with(['user', 'project', 'machine']);
+        //Verificar el rol del usuario para mostrar solo sus reportes o todos
+        if (!auth()->user()->hasRole('Administrador')) {
+            $reports->where('user_id', auth()->id());
+        }
 
         if (!$request->boolean('show_deleted')) {
             $reports->whereNull('deleted_at');

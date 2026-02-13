@@ -3,6 +3,7 @@ import AppMain from '@/Layouts/AppMain.vue'
 import { useForm, usePage } from '@inertiajs/vue3'
 
 import ButtonColor from '@/Components/ButtonColor.vue'
+import Banner from '@/Components/Banner.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
@@ -14,18 +15,20 @@ const props = defineProps({
     dailyReport: Object,
     projects: Array,
     machines: Array,
+    lastReport: Object,
+    infoMessage: String,
 })
 
 const user = usePage().props.auth.user
 
 const form = useForm({
-    project_id: props.dailyReport?.project_id ?? null,
-    machine_id: props.dailyReport?.machine_id ?? null,
+    project_id: props.dailyReport?.project_id ?? props.lastReport?.project_id ?? null,
+    machine_id: props.dailyReport?.machine_id ?? props.lastReport?.machine_id ?? null,
     date: props.dailyReport?.date ?? new Date().toISOString().slice(0,10),
-    initial_km: props.dailyReport?.initial_km ?? null,
+    initial_km: props.dailyReport?.initial_km ?? props.lastReport?.final_km ?? null,
     final_km: props.dailyReport?.final_km ?? null,
     total_km: props.dailyReport?.total_km ?? 0,
-    initial_hm: props.dailyReport?.initial_hm ?? null,
+    initial_hm: props.dailyReport?.initial_hm ?? props.lastReport?.final_hm ?? null,
     final_hm: props.dailyReport?.final_hm ?? null,
     total_hm: props.dailyReport?.total_hm ?? 0,
     work_description: props.dailyReport?.work_description ?? '',
@@ -63,7 +66,8 @@ const finishReport = () => {
                 {{ props.dailyReport ? 'Editar Reporte Diario' : 'Crear Reporte Diario' }}
             </h2>
         </template>
-
+        
+        <div v-if="props.infoMessage" class="max-w-3xl mx-auto bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{{ props.infoMessage }}</div>
         <div class="max-w-3xl mx-auto mt-6 p-4 bg-white shadow-md rounded">
             <div class="grid grid-cols-2 gap-2">
                 <ApplicationLogo class="mx-auto mb-4 w-auto h-20" />
