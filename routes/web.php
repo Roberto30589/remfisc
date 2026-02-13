@@ -4,6 +4,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MachineController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\DailyReportController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -17,8 +18,8 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    //ADMINISTRACIÓN
-    Route::prefix('admin')->name('admin.')->group(function () {
+    //ADMINISTRACIÓN solo para usuarios con rol "Administrador o Super-Administrador"
+    Route::middleware('role:Administrador|Super-Administrador')->prefix('admin')->name('admin.')->group(function () {
         //Rutas Usuarios (ADMIN)
         Route::prefix('users')->name('users.')->group(function () {
             //vistas
@@ -47,17 +48,30 @@ Route::middleware('auth')->group(function () {
 
         //Rutas Obras (ADMIN)
         Route::prefix('projects')->name('projects.')->group(function () {
-        //vistas
-        Route::get('/', [ProjectController::class, 'index'])->name('index');
-        Route::get('/table', [ProjectController::class, 'table'])->name('table');
-        Route::get('/add', [ProjectController::class, 'add'])->name('add');
-        Route::get('/edit/{id}', [ProjectController::class, 'edit'])->name('edit');
-        //CRUD
-        Route::post('/create', [ProjectController::class, 'create'])->name('create');
-        Route::put('/update/{id}', [ProjectController::class, 'update'])->name('update');
-        Route::delete('/delete/{id}', [ProjectController::class, 'destroy'])->name('destroy');
+            //vistas
+            Route::get('/', [ProjectController::class, 'index'])->name('index');
+            Route::get('/table', [ProjectController::class, 'table'])->name('table');
+            Route::get('/add', [ProjectController::class, 'add'])->name('add');
+            Route::get('/edit/{id}', [ProjectController::class, 'edit'])->name('edit');
+            //CRUD
+            Route::post('/create', [ProjectController::class, 'create'])->name('create');
+            Route::put('/update/{id}', [ProjectController::class, 'update'])->name('update');
+            Route::delete('/delete/{id}', [ProjectController::class, 'destroy'])->name('destroy');
         });
 
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::get('/',[AdminController::class, 'roleView'])->name('index');
+            Route::get('/table',[AdminController::class, 'roleTable'])->name('table');
+            Route::post('/create',[AdminController::class, 'createRole'])->name('create');
+            Route::put('/{id}/update',[AdminController::class, 'updateRole'])->name('update');
+        });
+
+        Route::prefix('permissions')->name('permissions.')->group(function () {
+            Route::get('/',[AdminController::class, 'permissionView'])->name('index');
+            Route::get('/table',[AdminController::class, 'permissionTable'])->name('table');
+            Route::post('/create',[AdminController::class, 'createPermission'])->name('create');
+            Route::put('/{id}/update',[AdminController::class, 'updatePermission'])->name('update');
+        });
     });
 
     //Rutas Reportes Diarios (USUARIOS)

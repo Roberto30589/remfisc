@@ -11,6 +11,9 @@ import 'datatables.net-responsive-dt'
 import { DataTableEs } from '@/Composables/datatableEs.js'
 import Swal from 'sweetalert2'
 import { onMounted, ref } from 'vue'
+import { usePermission } from '@/Composables/permission'
+
+const { hasRole , hasPermission, hasPermissions } = usePermission();
 
 DataTable.use(DataTablesCore)
 
@@ -136,6 +139,7 @@ const deleteReport = (id) => {
                                 <ButtonColor
                                     v-else
                                     color="teal"
+                                    target="_blank"
                                     :href="route('daily-reports.report', props.rowData.id)"
                                 >
                                     <FontAwesomeIcon :icon="faEye" class="size-4" />
@@ -143,6 +147,7 @@ const deleteReport = (id) => {
 
                                 <!-- Eliminar -->
                                 <ButtonColor
+                                    v-if="hasRole('Administrador')"
                                     type="button"
                                     color="red"
                                     title="Eliminar"

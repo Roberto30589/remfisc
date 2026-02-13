@@ -9,7 +9,7 @@
     import DropdownLink from '@/Components/DropdownLink.vue';
     import AsideLink from '@/Components/AsideLink.vue';
     import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-    import { faUser,faHouse,faTruck, faUsers, faGear, faRoad, faClipboardList} from '@fortawesome/free-solid-svg-icons'
+    import { faUser,faHouse,faTruck, faUsers, faGear, faRoad, faClipboardList, faLock, faUserTag } from '@fortawesome/free-solid-svg-icons'
     import ToastContainer from '@/Components/ToastContainer.vue';
     import toast from '@/Stores/toast';
     import { usePermission } from '@/Composables/permission';
@@ -139,7 +139,7 @@
             </AsideLink>
             
             
-            <AsideDropdown :aside="showingNavigationDropdown" :active="route().current('admin.*')" :open="route().current('admin.*')">
+            <AsideDropdown v-if="hasRole('Administrador') || hasRole('Super-Administrador')" :aside="showingNavigationDropdown" :active="route().current('admin.*')" :open="route().current('admin.*')">
                 <template #trigger >
                     <FontAwesomeIcon :icon="faGear" size="lg" class="min-w-6 pr-2" />
                     Administración
@@ -158,6 +158,14 @@
                     <AsideDropdownLink :href="route('admin.users.index')" :active="route().current('admin.users.index')">
                         <FontAwesomeIcon :icon="faUsers" size="lg" class="min-w-7 pr-1" />
                         Usuarios
+                    </AsideDropdownLink>
+                    <AsideDropdownLink v-if="hasPermission('view.permissions')" :href="route('admin.permissions.index')" :active="route().current('admin.permissions.index')">
+                        <FontAwesomeIcon :icon="faLock" size="lg" class="min-w-7 pr-1" />
+                        Permisos
+                    </AsideDropdownLink>
+                    <AsideDropdownLink v-if="hasPermission('view.roles')" :href="route('admin.roles.index')" :active="route().current('admin.roles.index')">
+                        <FontAwesomeIcon :icon="faUserTag" size="lg" class="min-w-8 pr-1" />
+                        Roles
                     </AsideDropdownLink>
                 </template>
             </AsideDropdown>
