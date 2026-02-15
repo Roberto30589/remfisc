@@ -147,7 +147,7 @@ const deleteReport = (id) => {
 
                                 <!-- Eliminar -->
                                 <ButtonColor
-                                    v-if="hasRole('Administrador')"
+                                    v-if="hasPermission('daily_reports.delete')"
                                     type="button"
                                     color="red"
                                     title="Eliminar"

@@ -159,11 +159,11 @@
                         <FontAwesomeIcon :icon="faUsers" size="lg" class="min-w-7 pr-1" />
                         Usuarios
                     </AsideDropdownLink>
-                    <AsideDropdownLink v-if="hasPermission('view.permissions')" :href="route('admin.permissions.index')" :active="route().current('admin.permissions.index')">
+                    <AsideDropdownLink v-if="hasPermission('permissions.view')" :href="route('admin.permissions.index')" :active="route().current('admin.permissions.index')">
                         <FontAwesomeIcon :icon="faLock" size="lg" class="min-w-7 pr-1" />
                         Permisos
                     </AsideDropdownLink>
-                    <AsideDropdownLink v-if="hasPermission('view.roles')" :href="route('admin.roles.index')" :active="route().current('admin.roles.index')">
+                    <AsideDropdownLink v-if="hasPermission('roles.view')" :href="route('admin.roles.index')" :active="route().current('admin.roles.index')">
                         <FontAwesomeIcon :icon="faUserTag" size="lg" class="min-w-8 pr-1" />
                         Roles
                     </AsideDropdownLink>

@@ -13,8 +13,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
 
-        $adminRole  = Role::where('name', 'administrador')->first();
-        $driverRole = Role::where('name', 'conductor')->first();
+        $superRole  = Role::where('name', 'Super-Administrador')->first();
+        $adminRole  = Role::where('name', 'Administrador')->first();
+        $driverRole = Role::where('name', 'Conductor')->first();
 
         $adminUser = User::firstOrCreate(
             ['rut' => '19.874.109-4'], // RUT único
@@ -25,8 +26,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        if (! $adminUser->hasRole('administrador')) {
-            $adminUser->assignRole($adminRole);
+        if (! $adminUser->hasRole('Super-Administrador')) {
+            $adminUser->assignRole($superRole);
         }
 
         $adminUser = User::firstOrCreate(
@@ -38,8 +39,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        if (! $adminUser->hasRole('administrador')) {
-            $adminUser->assignRole($adminRole);
+        if (! $adminUser->hasRole('Super-Administrador')) {
+            $adminUser->assignRole($superRole);
         }
 
 
@@ -52,10 +53,9 @@ class DatabaseSeeder extends Seeder
         ]
       );
 
-        if (! $driverUser->hasRole('conductor')) {
+        if (! $driverUser->hasRole('Conductor')) {
             $driverUser->assignRole($driverRole);
         }
-
 
         $this->call(MachineTypeSeeder::class);
         $this->call(MachineSeeder::class);

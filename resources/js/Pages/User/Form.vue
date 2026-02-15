@@ -92,15 +92,9 @@ const submit = () => {
         <!-- Roles -->
         <div>
           <InputLabel value="Roles" />
-          <select
-            v-model="form.roles"
-            multiple
-            class="w-full border rounded"
-          >
-            <option v-for="role in roles" :key="role.id" :value="role.id">
-              {{ role.name }}
-            </option>
-          </select>
+          <div class="grid grid-cols-3 gap-4">
+            <label class="border rounded p-1" v-for="role in roles" :key="role.id"><input type="checkbox" :value="role.id" v-model="form.roles"> {{ role.name }}</label>
+          </div>
           <InputError :message="form.errors.roles" />
         </div>
 
