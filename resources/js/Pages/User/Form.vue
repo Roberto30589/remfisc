@@ -5,6 +5,7 @@ import ButtonColor from '@/Components/ButtonColor.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
+import { watch } from 'vue'
 
 const props = defineProps({
   user: Object,
@@ -31,7 +32,57 @@ const form = useForm({
     : [],
 })
 
+// Valida RUT 
+const validarRut = (rut) => {
+  if (!rut) return false
+
+  const limpio = rut.replace(/[^0-9kK]/g, '').toLowerCase()
+
+  if (limpio.length < 8 || limpio.length > 9) return false
+
+  const dv = limpio.slice(-1)
+  const numero = limpio.slice(0, -1)
+
+  let suma = 0
+  let multiplicador = 2
+
+  for (let i = numero.length - 1; i >= 0; i--) {
+    suma += parseInt(numero[i]) * multiplicador
+    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1
+  }
+
+  const resto = suma % 11
+  let digito = 11 - resto
+
+  if (digito === 11) digito = '0'
+  else if (digito === 10) digito = 'k'
+  else digito = digito.toString()
+
+  return dv === digito
+}
+
+// Valida en tiempo real
+watch(() => form.rut, (value) => {
+  if (!value) {
+    form.clearErrors('rut')
+    return
+  }
+
+  if (!validarRut(value)) {
+    form.setError('rut', 'El RUT no es válido.')
+  } else {
+    form.clearErrors('rut')
+  }
+})
+
+// Envío del formulario
 const submit = () => {
+
+  if (!validarRut(form.rut)) {
+    form.setError('rut', 'El RUT no es válido.')
+    return
+  }
+
   props.user
     ? form.put(route('admin.users.update', props.user.id))
     : form.post(route('admin.users.store'))
@@ -70,7 +121,7 @@ const submit = () => {
           <InputError :message="form.errors.email" />
         </div>
 
-        <!-- Update password -->
+        <!-- Actualizar contraseña -->
         <div v-if="props.user" class="flex items-center gap-2">
           <input type="checkbox" v-model="form.updatePassword">
           <span class="text-sm">Actualizar contraseña</span>
@@ -83,7 +134,7 @@ const submit = () => {
           <InputError :message="form.errors.password" />
         </div>
 
-        <!-- Confirm Password -->
+        <!-- Confirmar Password -->
         <div v-if="!props.user || form.updatePassword">
           <InputLabel value="Confirmar contraseña" />
           <TextInput v-model="form.password_confirmation" type="password" class="w-full" />
@@ -93,13 +144,15 @@ const submit = () => {
         <div>
           <InputLabel value="Roles" />
           <div class="grid grid-cols-3 gap-4">
-            <label class="border rounded p-1" v-for="role in roles" :key="role.id"><input type="checkbox" :value="role.id" v-model="form.roles"> {{ role.name }}</label>
+            <label class="border rounded p-1" v-for="role in roles" :key="role.id">
+              <input type="checkbox" :value="role.id" v-model="form.roles">
+              {{ role.name }}
+            </label>
           </div>
           <InputError :message="form.errors.roles" />
         </div>
 
-
-        <!-- Submit -->
+        <!-- Botón -->
         <ButtonColor :color="props.user ? 'blue' : 'green'" type="submit">
           {{ props.user ? 'Actualizar Usuario' : 'Crear Usuario' }}
         </ButtonColor>
