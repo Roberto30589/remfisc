@@ -5,13 +5,21 @@ import ButtonColor from '@/Components/ButtonColor.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
-import { watch } from 'vue'
+import { ref } from 'vue';
+import { useRut } from '@/Composables/rut.js'; // Import the useRut function
+import RutInput from '@/Components/RutInput.vue';
+const { formatRut, validateRut } = useRut();
 
 const props = defineProps({
   user: Object,
   roles: Array,
   shifts: Array,
 })
+
+const rutIsValid = ref(props.user ? validateRut(props.user.rut) : true);
+const handleRutValidity =(isValid) =>{
+    rutIsValid.value = isValid;
+};
 
 const form = useForm({
   rut: props.user?.rut ?? '',
@@ -30,55 +38,14 @@ const form = useForm({
   shifts: props.user
     ? props.user.shifts.map(s => s.id)
     : [],
-})
+});
 
-// Valida RUT 
-const validarRut = (rut) => {
-  if (!rut) return false
 
-  const limpio = rut.replace(/[^0-9kK]/g, '').toLowerCase()
-
-  if (limpio.length < 8 || limpio.length > 9) return false
-
-  const dv = limpio.slice(-1)
-  const numero = limpio.slice(0, -1)
-
-  let suma = 0
-  let multiplicador = 2
-
-  for (let i = numero.length - 1; i >= 0; i--) {
-    suma += parseInt(numero[i]) * multiplicador
-    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1
-  }
-
-  const resto = suma % 11
-  let digito = 11 - resto
-
-  if (digito === 11) digito = '0'
-  else if (digito === 10) digito = 'k'
-  else digito = digito.toString()
-
-  return dv === digito
-}
-
-// Valida en tiempo real
-watch(() => form.rut, (value) => {
-  if (!value) {
-    form.clearErrors('rut')
-    return
-  }
-
-  if (!validarRut(value)) {
-    form.setError('rut', 'El RUT no es válido.')
-  } else {
-    form.clearErrors('rut')
-  }
-})
 
 // Envío del formulario
 const submit = () => {
 
-  if (!validarRut(form.rut)) {
+  if (!validateRut(form.rut)) {
     form.setError('rut', 'El RUT no es válido.')
     return
   }
@@ -102,8 +69,15 @@ const submit = () => {
 
         <!-- RUT -->
         <div>
-          <InputLabel value="RUT" />
-          <TextInput v-model="form.rut" class="w-full" />
+          <InputLabel value="RUT" />                
+          <RutInput
+              id="rut"
+              v-model="form.rut"
+              type="text"
+              class="mt-1 block w-full"
+              required
+              @isValidRut="handleRutValidity" />
+          <small v-show="!rutIsValid" class="text-red-500">Ingrese el RUT valido para proceder.</small>
           <InputError :message="form.errors.rut" />
         </div>
 

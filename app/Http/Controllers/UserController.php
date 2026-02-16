@@ -86,6 +86,11 @@ class UserController extends Controller
     public function delete($id)
     {
         $user = User::findOrFail($id);
+        $timestamp = now()->format('YmdHis');
+        $user->rut = $user->rut . '-d-' . $timestamp;
+        $user->email = $user->email . '-d-'.$timestamp;
+        $user->save();
+
         $user->delete();
 
         return redirect()

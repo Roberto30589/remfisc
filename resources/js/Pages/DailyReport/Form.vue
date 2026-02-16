@@ -35,6 +35,7 @@ const form = useForm({
     fuel_quantity: props.dailyReport?.fuel_quantity ?? null,
     fuel_observation: props.dailyReport?.fuel_observation ?? '',
     finished_at: props.dailyReport?.finished_at ?? null,
+    is_finished: false,
 })
 
 const totalKm = computed(() => {
@@ -54,7 +55,7 @@ const submit = () => {
 
 const finishReport = () => {
     // para terminar el reporte se asigna la fecha actual a finished_at como timestamp 'YYYY-MM-DD HH:MM:SS'
-    form.finished_at = new Date().toISOString().slice(0,19).replace('T', ' ');
+    form.is_finished = true;
     submit();
 }
 </script>

@@ -9,6 +9,13 @@ class RutValido implements ValidationRule
 {
    public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        //Cumple con formato básico de RUT (números, guiones, puntos y dígito verificador)
+        if (!preg_match('/^([0-9]{1,2})(\.[0-9]{3}){2}-[0-9kK]{1}$/i', $value)) {
+            $fail('El formato del :attribute debe ser xx.xxx.xxx-x.');
+            return;
+        }
+
+        // Eliminar puntos, guiones y espacios del RUT
         $rut = preg_replace('/[^0-9kK]/', '', $value);
 
         if (strlen($rut) < 8 || strlen($rut) > 9) {

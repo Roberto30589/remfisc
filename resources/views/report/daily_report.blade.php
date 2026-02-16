@@ -34,6 +34,8 @@
             </td>
             <td style="text-align: right; color: #00724e; font-size: 20px; font-weight: bold;">
                 Nº {{ $report->id }}
+                <small>{{ $report->created_at }}</small>
+                <small>{{ $report->finished_at }}</small>
             </td>
         </tr>
     </table>

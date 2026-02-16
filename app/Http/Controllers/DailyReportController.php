@@ -9,6 +9,7 @@ use App\Models\DailyReport;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Machine;
+use Carbon\Carbon;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -91,26 +92,26 @@ class DailyReportController extends Controller
     public function update(Request $request, $id)
     {
         $report = DailyReport::findOrFail($id);
+        if($request->boolean('is_finished')) {
+            //date_format:Y-m-d H:i:s
+            $request['finished_at'] = Carbon::now()->format('Y-m-d H:i:s');
+        }
 
         $data = $request->validate([
-            'project_id' => 'required|exists:projects,id',
-            'machine_id' => 'required|exists:machines,id',
-            'date' => 'required|date',
+            'project_id' => ['required', 'exists:projects,id'],
+            'machine_id' => ['required', 'exists:machines,id'],
+            'date'       => ['required', 'date'],
+            'initial_km' => ['required', 'numeric'],
+            'initial_hm' => ['required', 'numeric'],
 
-            'initial_km' => 'required|numeric',
-            'initial_hm' => 'required|numeric',
+            'final_km'   => ['nullable', 'required_if_accepted:is_finished', 'numeric', 'gte:initial_km'],
+            'final_hm'   => ['nullable', 'required_if_accepted:is_finished', 'numeric', 'gte:initial_hm'],
 
-            'final_km' => 'nullable|numeric|gte:initial_km',
-            'final_hm' => 'nullable|numeric|gte:initial_hm',
-
-            'work_description' => 'nullable|string',
-            'fuel_quantity' => 'nullable|numeric',
-            'fuel_observation' => 'nullable|string',
-
-            'finished_at' => 'nullable|date_format:Y-m-d H:i:s',
+            'work_description' => ['nullable', 'required_if_accepted:is_finished', 'string'],
+            'fuel_quantity'    => ['nullable', 'numeric'],
+            'fuel_observation' => ['nullable', 'string'],
+            'finished_at'      => ['nullable', 'required_if_accepted:is_finished', 'date_format:Y-m-d H:i:s'],
         ]);
-
-     
 
         // recalcular totales
         $data['total_km'] = ($data['final_km'] ?? 0) - $data['initial_km'];
