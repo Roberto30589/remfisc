@@ -18,6 +18,12 @@ class UserController extends Controller
         return Inertia::render('User/Index');
     }
 
+     // Laravel  espera crear un método "create" para mostrar el formulario de creación, pero lo redirigimos a "add" 
+    public function create()
+        {
+            return $this->add();
+        }
+        
     public function add()
     {
         return Inertia::render('User/Form', [
@@ -83,7 +89,7 @@ class UserController extends Controller
             ->with('success', 'Usuario actualizado correctamente');
     }
 
-    public function delete($id)
+    public function destroy($id)
     {
         $user = User::findOrFail($id);
         $timestamp = now()->format('YmdHis');

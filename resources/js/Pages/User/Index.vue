@@ -57,7 +57,7 @@ const deleteUser = (id, name) => {
     if (result.isConfirmed) {
       deleting.value = true
 
-      router.delete(route('admin.users.delete', { id }), {
+      router.delete(route('admin.users.destroy', { id }), {
         preserveScroll: true,
         onSuccess: () => {
           Swal.fire({
@@ -97,7 +97,7 @@ const deleteUser = (id, name) => {
 
         <ButtonColor
           color="green"
-          :href="route('admin.users.add')"
+          :href="route('admin.users.create')"
         >
           Crear usuario
         </ButtonColor>

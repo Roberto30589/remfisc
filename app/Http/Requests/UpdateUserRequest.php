@@ -2,32 +2,42 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use App\Rules\RutValido;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends UserRequest
 {
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     public function rules(): array
-    {
-        $userId = $this->route('id');
+{
+    $userId = $this->route('user');   // ← CAMBIÓ id → user
 
-        return [
-            'rut'      => ['required', 'string', 'max:12', 'unique:users,rut,' . $userId, new RutValido],
-            'name'     => ['required', 'string', 'min:6', 'max:255'],
-            'email'    => ['nullable', 'email', 'max:255', 'unique:users,email,' . $userId],
+    return [
 
-            'password' => ['nullable', 'confirmed', 'min:8'],
+        'rut' => [
+            'required',
+            'string',
+            'max:12',
+            new RutValido,
+            \Illuminate\Validation\Rule::unique('users','rut')->ignore($userId),
+        ],
 
-            'roles'    => ['required', 'array', 'min:1'],
-            'roles.*'  => ['exists:roles,id'],
+        'name' => ['required','string','min:6','max:255'],
 
-            'shifts'   => ['nullable', 'array'],
-            'shifts.*' => ['exists:shifts,id'],
-        ];
-    }
+        'email' => [
+            'nullable',
+            'email',
+            'max:255',
+            \Illuminate\Validation\Rule::unique('users','email')->ignore($userId),
+        ],
+
+        'password' => ['nullable','confirmed','min:8'],
+
+        'roles'   => ['required','array','min:1'],
+        'roles.*' => ['exists:roles,id'],
+
+        'shifts'   => ['nullable','array'],
+        'shifts.*' => ['exists:shifts,id'],
+    ];
+}
+
 }

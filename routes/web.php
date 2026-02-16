@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+
 Route::get('/', function () {
     return Inertia::render('Auth/Login');
 });
@@ -21,17 +22,9 @@ Route::middleware('auth')->group(function () {
     //ADMINISTRACIÓN solo para usuarios con rol "Administrador o Super-Administrador"
     Route::middleware('role:Administrador|Super-Administrador')->prefix('admin')->name('admin.')->group(function () {
         //Rutas Usuarios (ADMIN)
-        Route::prefix('users')->name('users.')->group(function () {
-            //vistas
-            Route::get('/',[UserController::class, 'index'])->name('index');
-            Route::get('/table', [UserController::class, 'table'])->name('table');
-            Route::get('/add', [UserController::class, 'add'])->name('add');
-            Route::get('/edit/{id}', [UserController::class, 'edit'])->name('edit');
-            //CRUD
-            Route::post('/store', [UserController::class, 'store'])->name('store');
-            Route::put('/update/{id}', [UserController::class, 'update'])->name('update');
-            Route::delete('/delete/{id}', [UserController::class, 'delete'])->name('delete');
-        });
+        Route::resource('users', UserController::class)->except(['show', 'destroy']);
+        Route::get('users/table', [UserController::class, 'table'])->name('users.table');
+        Route::delete('users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
               
         //Rutas Máquinas (ADMIN)
         Route::prefix('machines')->name('machines.')->group(function () {            
