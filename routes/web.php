@@ -21,8 +21,10 @@ Route::middleware('auth')->group(function () {
 
     //ADMINISTRACIÓN solo para usuarios con rol "Administrador o Super-Administrador"
     Route::middleware('role:Administrador|Super-Administrador')->prefix('admin')->name('admin.')->group(function () {
+
         //Rutas Usuarios (ADMIN)
         Route::resource('users', UserController::class)->except(['show', 'destroy']);
+        
         Route::get('users/table', [UserController::class, 'table'])->name('users.table');
         Route::delete('users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
               

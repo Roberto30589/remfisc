@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Rules\RutValido;
+use App\Rules\RutValidate;
 
 
 
@@ -11,7 +11,7 @@ class StoreUserRequest extends UserRequest
     public function rules(): array
     {
         return [
-            'rut'      => ['required','string','max:12','unique:users,rut', new RutValido],
+            'rut'      => ['required','string','max:12','unique:users,rut', new RutValidate],
             'name'     => ['required','string','min:6','max:255'],
             'email'    => ['nullable','email','max:255','unique:users,email'],
             'password' => ['required','confirmed','min:8'],

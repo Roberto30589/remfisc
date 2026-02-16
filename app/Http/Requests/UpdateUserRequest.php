@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Validation\Rule;
-use App\Rules\RutValido;
+use App\Rules\RutValidate;
 
 class UpdateUserRequest extends UserRequest
 {
@@ -17,7 +17,7 @@ class UpdateUserRequest extends UserRequest
             'required',
             'string',
             'max:12',
-            new RutValido,
+            new RutValidate,
             \Illuminate\Validation\Rule::unique('users','rut')->ignore($userId),
         ],
 
