@@ -3,7 +3,7 @@ import AppMain from '@/Layouts/AppMain.vue';
 import ButtonColor from '@/Components/ButtonColor.vue';
 import { Head } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPen,faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPen,faTrash, faTruck } from '@fortawesome/free-solid-svg-icons'
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-dt';
 import {DataTableEs} from '@/Composables/datatableEs.js';
@@ -16,10 +16,12 @@ import Swal from 'sweetalert2';
 
 DataTable.use(DataTablesCore);
 const columns = [
-    { data: 'internal_id', title: 'Nº',width:'1%'},
+    { data: 'internal_id', title: 'Nº',width:'5%'},
     { data: 'plate', title: 'Patente' },
+    { data: 'brand', title: 'Marca' },
+    { data: 'model', title: 'Modelo' },
     { data: 'type.name', title: 'Tipo' },
-    { data: 'fuel_type', title: 'Tipo de Combustible'},
+    { data: 'observations', title: 'Observaciones'},
     { data: null,render: '#action', title: 'Acción',width:'1%', className: 'ip-0',responsivePriority: 1, orderable: false }
 ];
 let dt;
@@ -97,11 +99,12 @@ const deleteMachine = (id, plate) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Maquinarias
+                    <font-awesome-icon :icon="faTruck"/>
+                    Listado de Maquinarias
                 </h2>
                 <ButtonColor
                     color="green"
-                    :href="route('admin.machines.add')"
+                    :href="route('admin.machines.create')"
                     class="ml-4"
                 >
                     Crear maquinaria

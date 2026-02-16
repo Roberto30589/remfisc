@@ -32,9 +32,4 @@ class User extends Authenticatable
             'password'          => 'hashed',
         ];
     }
-
-    public function shifts()
-    {
-        return $this->belongsToMany(Shift::class);
-    }
 }

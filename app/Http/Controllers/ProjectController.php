@@ -7,29 +7,34 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Yajra\DataTables\DataTables;
 
-class ProjectController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+
+class ProjectController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            // Permiso global para todo el recurso
+            new Middleware('permission:projects.view', only: ['index']),
+            
+            // Permisos específicos por acción
+            new Middleware('permission:projects.create', only: ['create', 'store']),
+            new Middleware('permission:projects.edit', only: ['edit', 'update']),
+            new Middleware('permission:projects.delete', only: ['destroy']),
+            
+            // Tu ruta personalizada de Datatables también necesita protección
+            new Middleware('permission:projects.view', only: ['table']),
+        ];
+    }
+
+    // Método para mostrar la lista de proyectos
     public function index()
     {
         return Inertia::render('Project/Index');
     }
-
-    public function add()
-    {
-        return Inertia::render('Project/Form', [
-            'project' => null,
-        ]);
-    }
-
-    public function edit($id)
-    {
-        $project = Project::findOrFail($id);
-
-        return Inertia::render('Project/Form', [
-            'project' => $project,
-        ]);
-    }
-
+    
+    // Método para proporcionar los datos de los proyectos en formato DataTables
     public function table(Request $request)
     {
         $projects = Project::query();
@@ -47,7 +52,26 @@ class ProjectController extends Controller
             ->make(true);
     }
 
-    public function create(Request $request)
+    // Método para mostrar el formulario de creación
+    public function create()
+    {
+        return Inertia::render('Project/Form', [
+            'project' => null,
+        ]);
+    }
+
+    // Método para mostrar el formulario de edición
+    public function edit($id)
+    {
+        $project = Project::findOrFail($id);
+
+        return Inertia::render('Project/Form', [
+            'project' => $project,
+        ]);
+    }
+
+    // Método para manejar la creación de un nuevo proyecto
+    public function store(Request $request)
     {
         $data = $request->validate([
             'name' => 'required',
@@ -65,6 +89,8 @@ class ProjectController extends Controller
             ->route('projects.index')
             ->with('success', 'Proyecto creado correctamente');
     }
+
+    // Método para manejar la actualización de un proyecto existente
     public function update(Request $request, $id)
     {
         $project = Project::findOrFail($id);
@@ -86,11 +112,11 @@ class ProjectController extends Controller
             ->with('success', 'Proyecto actualizado correctamente');
     }
 
+    // Método para manejar la eliminación de un proyecto
     public function destroy($id)
     {
         $project = Project::findOrFail($id);
         $project->delete();
-
         return back()->with('success', 'Proyecto eliminado correctamente');
     }
 }

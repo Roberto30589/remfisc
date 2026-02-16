@@ -28,7 +28,7 @@ const submit = () => {
     if (props.project) {
         form.put(route('admin.projects.update', props.project.id))
     } else {
-        form.post(route('admin.projects.create'))
+        form.post(route('admin.projects.store'))
     }
 }
 </script>
@@ -39,7 +39,7 @@ const submit = () => {
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
                 {{
                     props.project
-                        ? 'Editar Obra ' + props.project.internal_id
+                        ? 'Editar Obra (' + props.project.internal_id + ' - ' + props.project.name + ')'
                         : 'Crear Obra'
                 }}
             </h2>

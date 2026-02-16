@@ -13,8 +13,10 @@ class Machine extends Model
     protected $fillable = [
         'internal_id',
         'plate',
-        'name',
         'machine_type_id',
+        'brand',
+        'model',
+        'observations',
         'fuel_type',
         'fuel_capacity',
     ];

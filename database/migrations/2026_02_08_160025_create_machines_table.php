@@ -14,11 +14,13 @@ return new class extends Migration
     Schema::create('machines', function (Blueprint $table) {
         $table->id();
         $table->string('internal_id')->unique();
-        $table->string('plate')->nullable();
-        $table->string('name');
+        $table->string('plate')->unique()->nullable();
         $table->foreignId('machine_type_id')->constrained();
-        $table->string('fuel_type');
-        $table->integer('fuel_capacity');
+        $table->string('brand')->nullable();
+        $table->string('model')->nullable();
+        $table->string('observations')->nullable();
+        $table->string('fuel_type')->nullable();
+        $table->integer('fuel_capacity')->nullable();
         $table->softDeletes();
         $table->timestamps();
     });

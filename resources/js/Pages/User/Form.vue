@@ -34,10 +34,6 @@ const form = useForm({
   roles: props.user
     ? props.user.roles.map(r => r.id)
     : [],
-
-  shifts: props.user
-    ? props.user.shifts.map(s => s.id)
-    : [],
 });
 
 

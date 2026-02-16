@@ -16,7 +16,9 @@ const props = defineProps({
 const form = useForm({
   internal_id: props.machine?.internal_id ?? null,
   plate: props.machine?.plate ?? '',
-  name: props.machine?.name ?? '',
+  brand: props.machine?.brand ?? '',
+  model: props.machine?.model ?? '',
+  observations: props.machine?.observations ?? '',
   machine_type_id: props.machine?.machine_type_id ?? null,
   fuel_type: props.machine?.fuel_type ?? '',
   fuel_capacity: props.machine?.fuel_capacity ?? null,
@@ -25,7 +27,7 @@ const form = useForm({
 const submit = () => {
   props.machine
     ? form.put(route('admin.machines.update', props.machine.id))
-    : form.post(route('admin.machines.create'))
+    : form.post(route('admin.machines.store'))
 }
 </script>
 <template>
@@ -39,7 +41,7 @@ const submit = () => {
             <form @submit.prevent="submit" class="space-y-4">
                 <div>
                     <InputLabel for="internal_id" value="ID Interno" />
-                    <TextInput v-model="form.internal_id" type="number" id="internal_id" class="mt-1 block w-full" />
+                    <TextInput v-model="form.internal_id" type="text" id="internal_id" class="mt-1 block w-full" />
                     <InputError :message="form.errors.internal_id" class="mt-2" />
                 </div>
                 <div>
@@ -48,9 +50,14 @@ const submit = () => {
                     <InputError :message="form.errors.plate" class="mt-2" />
                 </div>
                 <div>
-                    <InputLabel for="name" value="Nombre" />
-                    <TextInput v-model="form.name" type="text" id="name" class="mt-1 block w-full" />
-                    <InputError :message="form.errors.name" class="mt-2" />
+                    <InputLabel for="brand" value="Marca" />
+                    <TextInput v-model="form.brand" type="text" id="brand" class="mt-1 block w-full" />
+                    <InputError :message="form.errors.brand" class="mt-2" />
+                </div>
+                <div>
+                    <InputLabel for="model" value="Modelo" />
+                    <TextInput v-model="form.model" type="text" id="model" class="mt-1 block w-full" />
+                    <InputError :message="form.errors.model" class="mt-2" />
                 </div>
                 <div>
                     <InputLabel for="machine_type_id" value="Tipo de Maquinaria" />
@@ -76,6 +83,11 @@ const submit = () => {
                     <InputLabel for="fuel_capacity" value="Capacidad de Combustible" />
                     <TextInput v-model="form.fuel_capacity" type="number" id="fuel_capacity" class="mt-1 block w-full" />
                     <InputError :message="form.errors.fuel_capacity" class="mt-2" />
+                </div>
+                <div>
+                    <InputLabel for="observations" value="Observaciones" />
+                    <TextInput v-model="form.observations" type="text" id="observations" class="mt-1 block w-full" />
+                    <InputError :message="form.errors.observations" class="mt-2" />
                 </div>
                 <div>
                     <ButtonColor type="submit" :color="props.machine ? 'blue' : 'green'">

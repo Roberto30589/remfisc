@@ -4,7 +4,7 @@ import ButtonColor from '@/Components/ButtonColor.vue'
 import ButtonGroup from '@/Components/ButtonGroup.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faEye, faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faClipboardList, faFile, faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-dt'
 import 'datatables.net-responsive-dt'
@@ -98,7 +98,8 @@ const deleteReport = (id) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-gray-800">
-                    Reportes diarios
+                    <font-awesome-icon :icon="faClipboardList"/>
+                    Listado de Reportes diarios
                 </h2>
 
                 <!-- OJO: esta ruta EXISTE -->
@@ -129,7 +130,7 @@ const deleteReport = (id) => {
                             <ButtonGroup>
 
                                 <ButtonColor
-                                    v-if="props.rowData.finished_at === null"
+                                    v-if="props.rowData.finished_at === null && (hasPermission('daily_reports.edit') && (props.rowData.user_id === $page.props.auth.user.id || hasRole('Administrador')))"
                                     color="blue"
                                     :href="route('daily-reports.edit', props.rowData.id)"
                                 >
@@ -142,7 +143,7 @@ const deleteReport = (id) => {
                                     target="_blank"
                                     :href="route('daily-reports.report', props.rowData.id)"
                                 >
-                                    <FontAwesomeIcon :icon="faEye" class="size-4" />
+                                    <FontAwesomeIcon :icon="faFile" class="size-4" />
                                 </ButtonColor>
 
                                 <!-- Eliminar -->

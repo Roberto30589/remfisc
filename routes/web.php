@@ -22,37 +22,17 @@ Route::middleware('auth')->group(function () {
     //ADMINISTRACIÓN solo para usuarios con rol "Administrador o Super-Administrador"
     Route::middleware('role:Administrador|Super-Administrador')->prefix('admin')->name('admin.')->group(function () {
 
-        //Rutas Usuarios (ADMIN)
-        Route::resource('users', UserController::class)->except(['show', 'destroy']);
-        
+        //Rutas Usuarios
+        Route::resource('users', UserController::class)->except(['show']);
         Route::get('users/table', [UserController::class, 'table'])->name('users.table');
-        Route::delete('users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
               
-        //Rutas Máquinas (ADMIN)
-        Route::prefix('machines')->name('machines.')->group(function () {            
-            //vistas
-            Route::get('/',[MachineController::class, 'index'])->name('index');
-            Route::get('/table', [MachineController::class, 'table'])->name('table');
-            Route::get('/add', [MachineController::class, 'add'])->name('add');
-            Route::get('/edit/{id}', [MachineController::class, 'edit'])->name('edit');
-            //CRUD
-            Route::post('/create', [MachineController::class, 'create'])->name('create');
-            Route::put('/update/{id}', [MachineController::class, 'update'])->name('update');
-            Route::delete('/delete/{id}', [MachineController::class, 'destroy'])->name('destroy');
-        });
-
-        //Rutas Obras (ADMIN)
-        Route::prefix('projects')->name('projects.')->group(function () {
-            //vistas
-            Route::get('/', [ProjectController::class, 'index'])->name('index');
-            Route::get('/table', [ProjectController::class, 'table'])->name('table');
-            Route::get('/add', [ProjectController::class, 'add'])->name('add');
-            Route::get('/edit/{id}', [ProjectController::class, 'edit'])->name('edit');
-            //CRUD
-            Route::post('/create', [ProjectController::class, 'create'])->name('create');
-            Route::put('/update/{id}', [ProjectController::class, 'update'])->name('update');
-            Route::delete('/delete/{id}', [ProjectController::class, 'destroy'])->name('destroy');
-        });
+        //Rutas Máquinas
+        Route::resource('machines', MachineController::class)->except(['show']);
+        Route::get('machines/table', [MachineController::class, 'table'])->name('machines.table');
+        
+        //Rutas Obras
+        Route::resource('projects', ProjectController::class)->except(['show']);
+        Route::get('projects/table', [ProjectController::class, 'table'])->name('projects.table');
 
         Route::prefix('roles')->name('roles.')->group(function () {
             Route::get('/',[AdminController::class, 'roleView'])->name('index');

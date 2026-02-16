@@ -4,7 +4,7 @@ import ButtonColor from '@/Components/ButtonColor.vue'
 import ButtonGroup from '@/Components/ButtonGroup.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPen, faRoad, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 import DataTable from 'datatables.net-vue3'
 import DataTablesCore from 'datatables.net-dt'
@@ -94,12 +94,13 @@ const deleteProject = (id, name) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Obras
+                    <font-awesome-icon :icon="faRoad"/>
+                    Listado de Obras
                 </h2>
 
                 <ButtonColor
                     color="green"
-                    :href="route('admin.projects.add')"
+                    :href="route('admin.projects.create')"
                 >
                     Crear obra
                 </ButtonColor>

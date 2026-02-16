@@ -57,7 +57,6 @@ class DatabaseSeeder extends Seeder
             $driverUser->assignRole($driverRole);
         }
 
-        $this->call(MachineTypeSeeder::class);
         $this->call(MachineSeeder::class);
         $this->call(ProjectSeeder::class);
     }

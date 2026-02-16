@@ -147,7 +147,7 @@
 
                 <template #content>
 
-                    <AsideDropdownLink :href="route('admin.machines.index')" :active="route().current('admin.machines.index')">
+                    <AsideDropdownLink :href="route('admin.machines.index')" :active="route().current('admin.machines.*')">
                         <FontAwesomeIcon :icon="faTruck" size="lg" class="min-w-6 pr-2" />
                         Maquinas
                     </AsideDropdownLink>
@@ -155,15 +155,15 @@
                         <FontAwesomeIcon :icon="faRoad" size="lg" class="min-w-6 pr-2" />
                         Obras
                     </AsideDropdownLink>
-                    <AsideDropdownLink :href="route('admin.users.index')" :active="route().current('admin.users.index')">
+                    <AsideDropdownLink :href="route('admin.users.index')" :active="route().current('admin.users.*')">
                         <FontAwesomeIcon :icon="faUsers" size="lg" class="min-w-7 pr-1" />
                         Usuarios
                     </AsideDropdownLink>
-                    <AsideDropdownLink v-if="hasPermission('permissions.view')" :href="route('admin.permissions.index')" :active="route().current('admin.permissions.index')">
+                    <AsideDropdownLink v-if="hasPermission('permissions.view')" :href="route('admin.permissions.index')" :active="route().current('admin.permissions.*')">
                         <FontAwesomeIcon :icon="faLock" size="lg" class="min-w-7 pr-1" />
                         Permisos
                     </AsideDropdownLink>
-                    <AsideDropdownLink v-if="hasPermission('roles.view')" :href="route('admin.roles.index')" :active="route().current('admin.roles.index')">
+                    <AsideDropdownLink v-if="hasPermission('roles.view')" :href="route('admin.roles.index')" :active="route().current('admin.roles.*')">
                         <FontAwesomeIcon :icon="faUserTag" size="lg" class="min-w-8 pr-1" />
                         Roles
                     </AsideDropdownLink>
