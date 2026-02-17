@@ -102,7 +102,7 @@ const finishReport = () => {
                     <SelectInput v-model="form.machine_id" class="w-full">
                         <option :value="null" disabled>Seleccione una maquinaria</option>
                         <option v-for="m in props.machines" :key="m.id" :value="m.id">
-                            {{ m.plate }} - {{ m.name }}
+                            {{ m.plate }} - {{ m.brand }} {{ m.model }}
                         </option>
                     </SelectInput>
                     <InputError :message="form.errors.machine_id" />

@@ -20,10 +20,12 @@ DataTable.use(DataTablesCore)
 const columns = [
     { data: 'id', title: 'Nº', width: '1%' },
     { data: 'date', render: '#fecha', title: 'Fecha' },
-    { data: 'user_name', title: 'Usuario' },
-    { data: 'project_name', title: 'Obra' },
-    { data: 'machine_name', title: 'Maquinaria' },
-    { data: 'machine_plate', title: 'Patente' },
+    { data: 'user.name', title: 'Usuario' },
+    { data: 'project.name', title: 'Obra' },
+    { data: 'machine.plate', title: 'Patente' },
+    { data: 'machine.internal_id', title: 'ID Interno' },
+    { data: 'machine.brand', title: 'Marca' },
+    { data: 'machine.model', title: 'Modelo' },
     {
         data: null,
         render: '#action',
