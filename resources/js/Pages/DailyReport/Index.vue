@@ -20,19 +20,21 @@ DataTable.use(DataTablesCore)
 const columns = [
     { data: 'id', title: 'Nº', width: '1%' },
     { data: 'date', render: '#fecha', title: 'Fecha' },
-    { data: 'user.name', title: 'Usuario' },
-    { data: 'project.name', title: 'Obra' },
-    { data: 'machine.name', title: 'Maquinaria' },
-    { data: 'machine.plate', title: 'Patente' },
+    { data: 'user_name', title: 'Usuario' },
+    { data: 'project_name', title: 'Obra' },
+    { data: 'machine_name', title: 'Maquinaria' },
+    { data: 'machine_plate', title: 'Patente' },
     {
         data: null,
         render: '#action',
         title: 'Acción',
         width: '1%',
         className: 'ip-0',
-        responsivePriority: 1, orderable: false
+        responsivePriority: 1,
+        orderable: false
     }
 ]
+
 
 let dt
 const table = ref()

@@ -6,8 +6,9 @@ use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Rules\RutValido;
 
 class UserController extends Controller

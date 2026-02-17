@@ -1,3 +1,5 @@
+se esta usando, Laravel, Vue, Mysql, con Breeze, Spatie 
 Agregar el police para daily report
 
 solo puede editar, quien tenga el permiso para editar y (sea el que lo creo O es administrador)
+mejorar login backend

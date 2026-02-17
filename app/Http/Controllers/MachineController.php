@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Yajra\DataTables\DataTables;
-use App\Http\Requests\StoreMachineRequest;
-use App\Http\Requests\UpdateMachineRequest;
 use App\Models\Machine;
 use App\Models\MachineType;
+
+use App\Http\Requests\Machine\StoreMachineRequest;
+use App\Http\Requests\Machine\UpdateMachineRequest;
+
 
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -32,7 +34,6 @@ class MachineController extends Controller implements HasMiddleware
         ];
     }
 
-
     // Método para mostrar la lista de máquinas
     public function index()
     {
@@ -42,18 +43,14 @@ class MachineController extends Controller implements HasMiddleware
     // Método para proporcionar los datos de las máquinas en formato DataTables
     public function table(Request $request)
     {
-        $machines = Machine::with('type');
+        $machines = Machine::query()->with('type');
 
-        // Filtrar por deleted_at
-        if (!$request->boolean('show_deleted')) {
-            $machines->whereNull('deleted_at');
-        } else {
+        if ($request->boolean('show_deleted')) {
             $machines->withTrashed();
         }
+
         return DataTables::of($machines)
-            ->addColumn('deleted', function ($machine) {
-                return $machine->deleted_at ? true : false;
-            })
+            ->addColumn('deleted', fn ($machine) => $machine->trashed())
             ->make(true);
     }
 
@@ -62,64 +59,48 @@ class MachineController extends Controller implements HasMiddleware
     {
         return Inertia::render('Machine/Form', [
             'machine' => null,
-            'types' => MachineType::all(),
+            'types' => MachineType::select('id', 'name')->get(),
         ]);
     }
 
     // Método para mostrar el formulario de edición
-    public function edit($id)
+   public function edit(Machine $machine)
     {
-        $machine = Machine::findOrFail($id);
+        $machine->load('type');
+
         return Inertia::render('Machine/Form', [
             'machine' => $machine,
-            'types' => MachineType::all(),
+            'types' => MachineType::select('id','name')->get(),
         ]);
     }
 
     // Método para manejar la creación de una nueva máquina
-    public function store(Request $request)
+    public function store(StoreMachineRequest $request)
     {
-        $data = $request->validate([
-            'internal_id' => 'required|unique:machines',
-            'plate' => 'required|unique:machines',
-            'machine_type_id' => 'required|exists:machine_types,id',
-            'brand' => 'nullable',
-            'model' => 'nullable',
-            'observations' => 'nullable',
-            'fuel_type' => 'required',
-            'fuel_capacity' => 'required|integer',
-        ]);
-        Machine::create($data);
-        
-        return redirect()->route('admin.machines.index')->with('success', 'Maquinaria creada correctamente');
+        Machine::create($request->validated());
+
+        return redirect()
+            ->route('admin.machines.index')
+            ->with('success', 'Maquinaria creada correctamente');
     }
 
     // Método para manejar la actualización de una máquina existente
-    public function update(Request $request, $id)
+    public function update(UpdateMachineRequest $request, Machine $machine)
     {
-        $machine = Machine::findOrFail($id);
-        $data = $request->validate([
-            'internal_id' => 'required|unique:machines,internal_id,' . $machine->id,
-            'plate' => 'required|unique:machines,plate,' . $machine->id,
-            'brand' => 'nullable',
-            'model' => 'nullable',
-            'observations' => 'nullable',
-            'machine_type_id' => 'required|exists:machine_types,id',
-            'fuel_type' => 'required',
-            'fuel_capacity' => 'required|integer',
-        ]);
+        $machine->update($request->validated());
 
-        $machine->update($data);
-
-        return redirect()->route('admin.machines.index')->with('success', 'Maquinaria actualizada correctamente');
+        return redirect()
+            ->route('admin.machines.index')
+            ->with('success', 'Maquinaria actualizada correctamente');
     }
 
     // Método para manejar la eliminación de una máquina
-    public function destroy($id)
+    public function destroy(Machine $machine)
     {
-        $machine = Machine::findOrFail($id);
         $machine->delete();
+
         return back()->with('success', 'Maquinaria eliminada correctamente');
     }
+
 }
 

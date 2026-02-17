@@ -9,6 +9,8 @@ use Yajra\DataTables\DataTables;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Requests\Project\UpdateProjectRequest;
 
 class ProjectController extends Controller implements HasMiddleware
 {
@@ -71,46 +73,26 @@ class ProjectController extends Controller implements HasMiddleware
     }
 
     // Método para manejar la creación de un nuevo proyecto
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required',
-            'internal_id' => 'required|unique:projects',
-            'region' => 'required',
-            'comuna' => 'required',
-            'started_at' => 'nullable|date',
-            'planned_finish_at' => 'nullable|date',
-            'actual_finish_at' => 'nullable|date',
-        ]);
-
-        Project::create($data);
+        Project::create($request->validated());
 
         return redirect()
-            ->route('projects.index')
+            ->route('admin.projects.index')
             ->with('success', 'Proyecto creado correctamente');
     }
 
+
     // Método para manejar la actualización de un proyecto existente
-    public function update(Request $request, $id)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
-        $project = Project::findOrFail($id);
-
-        $data = $request->validate([
-            'name' => 'required',
-            'internal_id' => 'required|unique:projects,internal_id,' . $project->id,
-            'region' => 'required',
-            'comuna' => 'required',
-            'started_at' => 'nullable|date',
-            'planned_finish_at' => 'nullable|date',
-            'actual_finish_at' => 'nullable|date',
-        ]);
-
-        $project->update($data);
+        $project->update($request->validated());
 
         return redirect()
-            ->route('projects.index')
+            ->route('admin.projects.index')
             ->with('success', 'Proyecto actualizado correctamente');
     }
+
 
     // Método para manejar la eliminación de un proyecto
     public function destroy($id)

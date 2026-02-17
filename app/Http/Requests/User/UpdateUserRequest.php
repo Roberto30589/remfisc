@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Validation\Rule;
 use App\Rules\RutValidate;
+use App\Http\Requests\User\UserRequest;
 
 class UpdateUserRequest extends UserRequest
 {

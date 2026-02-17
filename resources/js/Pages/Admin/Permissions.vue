@@ -16,7 +16,6 @@ import { faAdd,faPen,faTrash,faLock } from '@fortawesome/free-solid-svg-icons';
 import DataTable from 'datatables.net-vue3';
 import DataTablesCore from 'datatables.net-dt';
 import {DataTableEs} from '@/Composables/datatableEs.js';
-
 import { useForm } from '@inertiajs/vue3';
 import {onMounted, ref} from "vue";
 

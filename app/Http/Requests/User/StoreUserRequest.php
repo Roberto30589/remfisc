@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Http\Requests;
-use Illuminate\Foundation\Http\FormRequest;
+namespace App\Http\Requests\User;
+use App\Http\Requests\User\UserRequest;
 use App\Rules\RutValidate;
 
 

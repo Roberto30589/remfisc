@@ -146,8 +146,22 @@ class DailyReportController extends Controller
             $reports->withTrashed();
         }
 
-        return DataTables::of($reports)->make(true);
+        return DataTables::of($reports)
+            ->addColumn('user_name', function ($report) {
+                return $report->user?->name ?? '';
+            })
+            ->addColumn('project_name', function ($report) {
+                return $report->project?->name ?? '';
+            })
+            ->addColumn('machine_name', function ($report) {
+                return $report->machine?->name ?? '';
+            })
+            ->addColumn('machine_plate', function ($report) {
+                return $report->machine?->plate ?? '';
+            })
+            ->make(true);
     }
+
 
     public function report($id)
     {
