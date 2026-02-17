@@ -62,10 +62,8 @@ class UserController extends Controller
     }
 
     // Método para manejar la actualización de un usuario existente
-    public function update(UpdateUserRequest $request, $id)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $user = User::findOrFail($id);
-
         $validated = $request->validated();
 
         if ($request->boolean('updatePassword') && !empty($validated['password'])) {
@@ -84,13 +82,14 @@ class UserController extends Controller
     }
 
     // Método para manejar la eliminación de un usuario
-    public function destroy($id)
+    public function destroy(User $user)
     {
-        $user = User::findOrFail($id);
         $timestamp = now()->format('YmdHis');
-        $user->rut = $user->rut . '-d-' . $timestamp;
-        $user->email = $user->email . '-d-'.$timestamp;
-        $user->save();
+
+        $user->update([
+            'rut'   => $user->rut . '-d-' . $timestamp,
+            'email' => $user->email . '-d-' . $timestamp,
+        ]);
 
         $user->delete();
 
@@ -98,4 +97,5 @@ class UserController extends Controller
             ->route('admin.users.index')
             ->with('success', 'Usuario eliminado correctamente');
     }
+
 }
