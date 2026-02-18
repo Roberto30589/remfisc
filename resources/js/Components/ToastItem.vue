@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, computed } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faInfoCircle, faExclamationTriangle, faBug, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faExclamationTriangle, faCircleXmark, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 
 
 const props = defineProps({
@@ -24,7 +24,7 @@ const variantStyles = {
   },
   error: {
     type: 'error',
-    icon: faBug,
+    icon: faCircleXmark,
   },
   warning: {
     type: 'warning',

@@ -1,5 +1,5 @@
 <script setup>
-    import { onUnmounted, ref } from 'vue';
+    import { watch, ref } from 'vue';
     import { Head, Link, router, usePage } from '@inertiajs/vue3';
     import ApplicationMark from '@/Components/ApplicationMark.vue';
     import Banner from '@/Components/Banner.vue';
@@ -29,33 +29,22 @@
     //Esto es para los mensajes de success y error
     const page = usePage();
 
-    let removeFinishEventListener = router.on('finish',()=>{
-        if(page.props.flash?.success){
-            console.log("success",page.props.flash.success);
-            toast.add({type:"success",message:page.props.flash.success});
-        }
-        if(page.props.flash?.error){
-            console.log("error",page.props.flash.error);
-            toast.add({type:"error",message:page.props.flash.error});
-        }
-        
-        if(page.props.errors){
-            console.log("error",page.props.errors);
-            Object.keys(page.props.errors).forEach(key => {
-                toast.add({type:"error",message:page.props.errors[key]});
+    // Observamos los cambios en los flashes
+    watch(() => page.props.flash, (flash) => {
+        if (flash?.success) toast.add({ type: "success", message: flash.success });
+        if (flash?.error)   toast.add({ type: "error", message: flash.error });
+        if (flash?.info)    toast.add({ type: "info", message: flash.info });
+        if (flash?.warning) toast.add({ type: "warning", message: flash.warning });
+    }, { deep: true, immediate: true });
+
+    // Observamos los errores de validación
+    watch(() => page.props.errors, (errors) => {
+        if (Object.keys(errors).length > 0) {
+            Object.keys(errors).forEach(key => {
+                toast.add({ type: "error", message: errors[key] });
             });
         }
-        if(page.props.flash?.warning){
-            console.log("error",page.props.flash.warning);
-            toast.add({type:"warning",message:page.props.flash.warning});
-        }
-        if(page.props.flash?.info){
-            console.log("info",page.props.flash.info);
-            toast.add({type:"info",message:page.props.flash.info});
-        }
-    });
-
-    onUnmounted(()=> removeFinishEventListener());
+    }, { deep: true });
 </script>
 
 <template>

@@ -3,7 +3,6 @@ import AppMain from '@/Layouts/AppMain.vue'
 import { useForm, usePage } from '@inertiajs/vue3'
 
 import ButtonColor from '@/Components/ButtonColor.vue'
-import Banner from '@/Components/Banner.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
@@ -16,7 +15,6 @@ const props = defineProps({
     projects: Array,
     machines: Array,
     lastReport: Object,
-    infoMessage: String,
 })
 
 const user = usePage().props.auth.user
@@ -25,14 +23,14 @@ const form = useForm({
     project_id: props.dailyReport?.project_id ?? props.lastReport?.project_id ?? null,
     machine_id: props.dailyReport?.machine_id ?? props.lastReport?.machine_id ?? null,
     date: props.dailyReport?.date ?? new Date().toISOString().slice(0,10),
-    initial_km: props.dailyReport?.initial_km ?? props.lastReport?.final_km ?? null,
-    final_km: props.dailyReport?.final_km ?? null,
-    total_km: props.dailyReport?.total_km ?? 0,
-    initial_hm: props.dailyReport?.initial_hm ?? props.lastReport?.final_hm ?? null,
-    final_hm: props.dailyReport?.final_hm ?? null,
-    total_hm: props.dailyReport?.total_hm ?? 0,
+    initial_km: props.dailyReport?.initial_km ?? props.lastReport?.final_km ?? '',
+    final_km: props.dailyReport?.final_km ?? '',
+    total_km: props.dailyReport?.total_km ?? '',
+    initial_hm: props.dailyReport?.initial_hm ?? props.lastReport?.final_hm ?? '',
+    final_hm: props.dailyReport?.final_hm ?? '',
+    total_hm: props.dailyReport?.total_hm ?? '',
     work_description: props.dailyReport?.work_description ?? '',
-    fuel_quantity: props.dailyReport?.fuel_quantity ?? null,
+    fuel_quantity: props.dailyReport?.fuel_quantity ?? '',
     fuel_observation: props.dailyReport?.fuel_observation ?? '',
     finished_at: props.dailyReport?.finished_at ?? null,
     is_finished: false,
@@ -40,11 +38,11 @@ const form = useForm({
 
 const totalKm = computed(() => {
     //para calcular la diferencia final_km y initial_km deben ser mayores a 0
-    return form.final_km>0 && form.initial_km>0 ? form.final_km - form.initial_km : null;
+    return form.final_km>0 && form.initial_km>0 ? form.final_km - form.initial_km : '';
 })
 
 const totalHm = computed(() => {
-    return form.final_hm>0 && form.initial_hm>0 ? form.final_hm - form.initial_hm : null;
+    return form.final_hm>0 && form.initial_hm>0 ? form.final_hm - form.initial_hm : '';
 })
 
 const submit = () => {
@@ -68,7 +66,6 @@ const finishReport = () => {
             </h2>
         </template>
         
-        <div v-if="props.infoMessage" class="max-w-3xl mx-auto bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{{ props.infoMessage }}</div>
         <div class="max-w-3xl mx-auto mt-6 p-4 bg-white shadow-md rounded">
             <div class="grid grid-cols-2 gap-2">
                 <ApplicationLogo class="mx-auto mb-4 w-auto h-20" />

@@ -14,6 +14,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class DailyReportController extends Controller
 {
+    //variables de renderizado de vistas, para evitar repetir código
+    protected $index = 'DailyReport/Index';
+    protected $form = 'DailyReport/Form';
+
     public function __construct()
     {
         //Utilizando los nombre de los métodos convencionales de un Resource Controller, podemos aplicar la autorización automáticamente con authorizeResource
@@ -25,7 +29,7 @@ class DailyReportController extends Controller
     // LISTADO
     public function index()
     {
-        return Inertia::render('DailyReport/Index');
+        return Inertia::render($this->index);
     }
 
     // DATATABLE
@@ -53,19 +57,21 @@ class DailyReportController extends Controller
     public function create()
     {
         $this->authorize('create', DailyReport::class);
+        
+        //Buscamos el último reporte del usuario para prellenar el formulario con esos datos (excepto fecha, km/hm y descripción de trabajo que se dejan en blanco para que el usuario los complete)
+        $last_daily_report = DailyReport::where('user_id', auth()->id())->latest()->first();
 
-        $last_daily_report = DailyReport::where('user_id', auth()->id())
-            ->whereNull('finished_at')
-            ->latest()
-            ->first();
+        //Si el último reporte no tiene fecha de finalización (finished_at), se le redirige a ese reporte para que lo complete en lugar de crear uno nuevo
+        if ($last_daily_report && !$last_daily_report->finished_at) {
+            return redirect()
+                ->route('daily-reports.edit', $last_daily_report)
+                ->with('warning', 'Tienes un reporte sin finalizar. Continúa con ese.');
+        }
 
-        return Inertia::render('DailyReport/Form', [
-            'dailyReport' => $last_daily_report,
+        return Inertia::render($this->form, [
+            'lastReport'  => $last_daily_report, // Para prellenar el formulario con los datos del último reporte abierto
             'projects'    => Project::select('id','name')->get(),
             'machines'    => Machine::select('id','plate','internal_id')->get(),
-            'infoMessage' => $last_daily_report 
-                ? 'Tienes un reporte sin finalizar. Continuando desde donde quedaste.'
-                : null,
         ]);
     }
 
@@ -73,7 +79,7 @@ class DailyReportController extends Controller
     public function edit(DailyReport $daily_report)
     {
         $daily_report->load(['project','machine','user']);
-        return Inertia::render('DailyReport/Form', [
+        return Inertia::render($this->form, [
             'dailyReport' => $daily_report,
             'projects'    => Project::select('id','name')->get(),
             'machines'    => Machine::select('id','plate','internal_id')->get(),
@@ -95,7 +101,7 @@ class DailyReportController extends Controller
         if ($open_daily_report) {
             return redirect()
                 ->route('daily-reports.edit', $open_daily_report)
-                ->with('info', 'Tienes un reporte sin finalizar. Continúa con ese.');
+                ->with('warning', 'Tienes un reporte sin finalizar. Continúa con ese.');
         }
 
         //Si no tiene reportes abiertos, se le permite crear uno nuevo
