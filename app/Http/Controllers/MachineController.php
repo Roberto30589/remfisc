@@ -12,8 +12,6 @@ use App\Models\MachineType;
 use App\Http\Requests\Machine\StoreMachineRequest;
 use App\Http\Requests\Machine\UpdateMachineRequest;
 
-
-
 class MachineController extends Controller
 {
     public function __construct()

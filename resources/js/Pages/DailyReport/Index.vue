@@ -134,7 +134,7 @@ const deleteReport = (id) => {
                                 <ButtonColor
                                     v-if="props.rowData.finished_at === null && (hasPermission('daily_reports.edit') && (props.rowData.user_id === $page.props.auth.user.id || hasRole('Administrador')))"
                                     color="blue"
-                                    :href="route('daily-reports.edit', props.rowData.id)"
+                                    :href="route('daily-reports.edit', { id: props.rowData.id })"
                                 >
                                     <FontAwesomeIcon :icon="faPen" class="size-4" />
                                 </ButtonColor>
@@ -143,7 +143,7 @@ const deleteReport = (id) => {
                                     v-else
                                     color="teal"
                                     target="_blank"
-                                    :href="route('daily-reports.report', props.rowData.id)"
+                                    :href="route('daily-reports.show', {id: props.rowData.id})"
                                 >
                                     <FontAwesomeIcon :icon="faFile" class="size-4" />
                                 </ButtonColor>

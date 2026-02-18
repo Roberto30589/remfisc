@@ -23,16 +23,16 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:Administrador|Super-Administrador')->prefix('admin')->name('admin.')->group(function () {
 
         //Rutas Usuarios
-        Route::resource('users', UserController::class)->except(['show']);
         Route::get('users/table', [UserController::class, 'table'])->name('users.table');
+        Route::resource('users', UserController::class)->except(['show']);
               
         //Rutas Máquinas
-        Route::resource('machines', MachineController::class)->except(['show']);
         Route::get('machines/table', [MachineController::class, 'table'])->name('machines.table');
+        Route::resource('machines', MachineController::class)->except(['show']);
         
         //Rutas Obras
-        Route::resource('projects', ProjectController::class)->except(['show']);
         Route::get('projects/table', [ProjectController::class, 'table'])->name('projects.table');
+        Route::resource('projects', ProjectController::class)->except(['show']);
 
         Route::prefix('roles')->name('roles.')->group(function () {
             Route::get('/',[AdminController::class, 'roleView'])->name('index');
@@ -51,11 +51,8 @@ Route::middleware('auth')->group(function () {
 
 
     //Rutas Reportes Diarios (USUARIOS)
-    Route::resource('daily-reports', DailyReportController::class)->except(['show']);
     Route::get('daily-reports/table', [DailyReportController::class, 'table'])->name('daily-reports.table');
-    Route::get('daily-reports/{dailyReport}/report', [DailyReportController::class, 'report'])->name('daily-reports.report');
-
-
+    Route::resource('daily-reports', DailyReportController::class);
 
     //PERFIL USUARIO
     Route::get('/profile', [UserController::class, 'edit'])->name('profile.edit');

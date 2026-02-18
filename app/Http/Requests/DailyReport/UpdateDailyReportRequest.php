@@ -9,11 +9,9 @@ class UpdateDailyReportRequest extends DailyReportRequest
 {
     public function authorize(): bool
     {
-        $dailyReport = $this->route('dailyReport');
-
-        return $this->user()->can('update', $dailyReport);
+        $daily_report = $this->route('daily_report');
+        return $this->user()->can('update', $daily_report);
     }
-
 
     public function rules(): array
     {

@@ -16,15 +16,15 @@ class DailyReportController extends Controller
 {
     public function __construct()
     {
-        // Middleware de autorización para todas las rutas REST
-        $this->authorizeResource(DailyReport::class, 'dailyReport');
+        //Utilizando los nombre de los métodos convencionales de un Resource Controller, podemos aplicar la autorización automáticamente con authorizeResource
+        //Esto aplicará las políticas correspondientes a cada método (index → viewAny, show → view, create → create, edit/update → update, destroy → delete)
+        //Creamos la política con php artisan make:policy DailyReportPolicy --model=DailyReport
+        $this->authorizeResource(DailyReport::class, 'daily_report');
     }
 
     // LISTADO
     public function index()
     {
-        $this->authorize('viewAny', DailyReport::class);
-
         return Inertia::render('DailyReport/Index');
     }
 
@@ -32,21 +32,20 @@ class DailyReportController extends Controller
     public function table(Request $request)
     {
         $this->authorize('viewAny', DailyReport::class);
-
-        $reports = DailyReport::query()
+        $daily_reports = DailyReport::query()
             ->with(['user', 'project', 'machine']);
 
         // Solo ver los suyos si no es administrador
         if (!auth()->user()->hasAnyRole(['Administrador','Super-Administrador'])) {
-            $reports->where('user_id', auth()->id());
+            $daily_reports->where('user_id', auth()->id());
         }
 
         if ($request->boolean('show_deleted')) {
-            $reports->withTrashed();
+            $daily_reports->withTrashed();
         }
 
-        return DataTables::of($reports)
-            ->addColumn('deleted', fn ($report) => $report->trashed())
+        return DataTables::of($daily_reports)
+            ->addColumn('deleted', fn ($daily_report) => $daily_report->trashed())
             ->make(true);
     }
 
@@ -55,28 +54,27 @@ class DailyReportController extends Controller
     {
         $this->authorize('create', DailyReport::class);
 
-        $lastReport = DailyReport::where('user_id', auth()->id())
+        $last_daily_report = DailyReport::where('user_id', auth()->id())
             ->whereNull('finished_at')
             ->latest()
             ->first();
 
         return Inertia::render('DailyReport/Form', [
-            'dailyReport' => $lastReport,
+            'dailyReport' => $last_daily_report,
             'projects'    => Project::select('id','name')->get(),
             'machines'    => Machine::select('id','plate','internal_id')->get(),
-            'infoMessage' => $lastReport 
+            'infoMessage' => $last_daily_report 
                 ? 'Tienes un reporte sin finalizar. Continuando desde donde quedaste.'
                 : null,
         ]);
     }
 
     // FORM EDITAR
-    public function edit(DailyReport $dailyReport)
+    public function edit(DailyReport $daily_report)
     {
-        $dailyReport->load(['project','machine','user']);
-
+        $daily_report->load(['project','machine','user']);
         return Inertia::render('DailyReport/Form', [
-            'dailyReport' => $dailyReport,
+            'dailyReport' => $daily_report,
             'projects'    => Project::select('id','name')->get(),
             'machines'    => Machine::select('id','plate','internal_id')->get(),
         ]);
@@ -87,17 +85,20 @@ class DailyReportController extends Controller
     {
         $this->authorize('create', DailyReport::class);
 
-        $openReport = DailyReport::where('user_id', auth()->id())
-            ->whereNull('finished_at')
-            ->latest()
-            ->first();
-
-        if ($openReport) {
+        //buscamos si el usuario tiene un reporte abierto (sin finished_at)
+        $open_daily_report = DailyReport::where('user_id', auth()->id())
+        ->whereNull('finished_at')
+        ->latest()
+        ->first();
+        
+        //Si el usuario tiene un reporte abierto, no se le permite crear uno nuevo hasta que termine el anterior. En su lugar, se le redirige al reporte abierto para que lo complete.
+        if ($open_daily_report) {
             return redirect()
-                ->route('daily-reports.edit', $openReport)
+                ->route('daily-reports.edit', $open_daily_report)
                 ->with('info', 'Tienes un reporte sin finalizar. Continúa con ese.');
         }
 
+        //Si no tiene reportes abiertos, se le permite crear uno nuevo
         DailyReport::create([
             ...$request->validated(),
             'user_id' => auth()->id(),
@@ -109,45 +110,36 @@ class DailyReportController extends Controller
     }
 
     // UPDATE
-    public function update(UpdateDailyReportRequest $request, DailyReport $dailyReport)
+    public function update(UpdateDailyReportRequest $request, DailyReport $daily_report)
     {
-        $this->authorize('update', $dailyReport);
-
+        $this->authorize('update', $daily_report);
         $data = $request->validated();
-
         if ($request->boolean('is_finished')) {
             $data['finished_at'] = now();
         }
-
-        $dailyReport->update($data);
-
+        $daily_report->update($data);
         return redirect()
             ->route('daily-reports.index')
             ->with('success', 'Reporte actualizado correctamente');
     }
 
     // DELETE
-    public function destroy(DailyReport $dailyReport)
+    public function destroy(DailyReport $daily_report)
     {
-        $this->authorize('delete', $dailyReport);
-
-        $dailyReport->delete();
-
+        $this->authorize('delete', $daily_report);
+        $daily_report->delete();
         return back()->with('success', 'Reporte eliminado correctamente');
     }
 
     // PDF (método personalizado → requiere authorize manual)
-    public function report(DailyReport $dailyReport)
+    public function show(DailyReport $daily_report)
     {
-        $this->authorize('view', $dailyReport);
-
-        $dailyReport->load(['user','project','machine']);
-
+        $this->authorize('view', $daily_report);
+        $daily_report->load(['user','project','machine']);
         $pdf = Pdf::loadView('report.daily_report', [
-            'title'  => 'Daily Report ' . $dailyReport->id,
-            'report' => $dailyReport
+            'title'  => 'Daily Report ' . $daily_report->id,
+            'report' => $daily_report
         ]);
-
-        return $pdf->stream('daily_report_' . $dailyReport->id . '.pdf');
+        return $pdf->stream('daily_report_' . $daily_report->id . '.pdf');
     }
 }
