@@ -3,80 +3,117 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role; // ✔ import correcto
-use Spatie\Permission\Models\Permission; // ✔ import correcto
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
         $permissions = [
-            //users
-            ['name' => 'users.view','guard_name'=>'web'],
-            ['name' => 'users.create','guard_name'=>'web'],
-            ['name' => 'users.edit','guard_name'=>'web'],
-            ['name' => 'users.delete','guard_name'=>'web'],
 
-            //projects
-            ['name' => 'projects.view','guard_name'=>'web'],
-            ['name' => 'projects.create','guard_name'=>'web'],
-            ['name' => 'projects.edit','guard_name'=>'web'],
-            ['name' => 'projects.delete','guard_name'=>'web'],
-
-            //machines
-            ['name' => 'machines.view','guard_name'=>'web'],
-            ['name' => 'machines.create','guard_name'=>'web'],
-            ['name' => 'machines.edit','guard_name'=>'web'],
-            ['name' => 'machines.delete','guard_name'=>'web'],
-
-            //Daily Reports
-            ['name' => 'daily_reports.view','guard_name'=>'web'],
-            ['name' => 'daily_reports.create','guard_name'=>'web'],
-            ['name' => 'daily_reports.edit','guard_name'=>'web'],
-            ['name' => 'daily_reports.delete','guard_name'=>'web'],
-
-            //roles
-            ['name' => 'roles.view','guard_name'=>'web'],
-            ['name' => 'roles.create','guard_name'=>'web'],
-            ['name' => 'roles.edit','guard_name'=>'web'],
-            ['name' => 'roles.delete','guard_name'=>'web'],
-
-            //permissions
-            ['name' => 'permissions.view','guard_name'=>'web'],
-            ['name' => 'permissions.create','guard_name'=>'web'],
-            ['name' => 'permissions.edit','guard_name'=>'web'],
-            ['name' => 'permissions.delete','guard_name'=>'web'],
-        ];
-
-        foreach ($permissions as $permission) {
-            Permission::create($permission);
-        }
-
-        $super = Role::create(['name' => 'Super-Administrador','guard_name'=>'web']);
-        $super->givePermissionTo(Permission::all());
-
-        $admin = Role::create(['name' => 'Administrador','guard_name'=>'web']);
-        $admin->givePermissionTo([
+            // USERS
             'users.view',
             'users.create',
             'users.edit',
-            'users.delete', 
+            'users.delete',
+            
+            //PROJECTS
             'projects.view',
             'projects.create',
             'projects.edit',
             'projects.delete',
+
+            // MACHINES
             'machines.view',
             'machines.create',
             'machines.edit',
             'machines.delete',
+
+            // DAILY REPORTS
             'daily_reports.view',
+            'daily_reports.view_all',
             'daily_reports.create',
             'daily_reports.edit',
+            'daily_reports.edit_all',
             'daily_reports.delete',
+            'daily_reports.delete_all',
+            'daily_reports.finish',
+
+            // ROLES
+            'roles.view',
+            'roles.create',
+            'roles.edit',
+            'roles.delete',
+
+            // PERMISSIONS
+            'permissions.view',
+            'permissions.create',
+            'permissions.edit',
+            'permissions.delete',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web'
+            ]);
+        }
+
+        // Creación de roles y asignación de permisos
+
+        // Super Administrador
+        $super = Role::firstOrCreate([
+            'name' => 'Super-Administrador',
+            'guard_name' => 'web'
         ]);
 
-        $conductor = Role::firstOrCreate(['name' => 'Conductor']);
-        $conductor->givePermissionTo([
+        $super->syncPermissions(Permission::all());
+
+
+        // Administrador
+        $admin = Role::firstOrCreate([
+            'name' => 'Administrador',
+            'guard_name' => 'web'
+        ]);
+
+        $admin->syncPermissions([
+            // users
+            'users.view',
+            'users.create',
+            'users.edit',
+            'users.delete',
+
+            // projects
+            'projects.view',
+            'projects.create',
+            'projects.edit',
+            'projects.delete',
+
+            // machines
+            'machines.view',
+            'machines.create',
+            'machines.edit',
+            'machines.delete',
+
+            // daily reports
+            'daily_reports.view',
+            'daily_reports.view_all',
+            'daily_reports.create',
+            'daily_reports.edit',
+            'daily_reports.edit_all',
+            'daily_reports.delete',
+            'daily_reports.delete_all',
+        ]);
+
+
+        // Conductor
+        $conductor = Role::firstOrCreate([
+            'name' => 'Conductor',
+            'guard_name' => 'web'
+        ]);
+
+        $conductor->syncPermissions([
             'daily_reports.view',
             'daily_reports.create',
             'daily_reports.edit',

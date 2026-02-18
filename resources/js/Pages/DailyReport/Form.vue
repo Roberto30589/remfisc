@@ -181,8 +181,12 @@ const finishReport = () => {
                         {{ props.dailyReport ? 'Actualizar Reporte' : 'Crear Reporte' }}
                     </ButtonColor>
                     
-                    <ButtonColor type="button" color="blue" v-if="props.dailyReport" @click="finishReport">
-                        Terminar reporte
+                    <ButtonColor
+                        color="blue"
+                        :disabled="!props.dailyReport || form.is_finished"
+                        @click="finishReport"
+                    >
+                        Terminar Reporte
                     </ButtonColor>
                 </div>
 

@@ -131,7 +131,6 @@ const deleteReport = (id) => {
                         </template>
                         <template #action="props">
                             <ButtonGroup>
-
                                 <ButtonColor
                                     v-if="props.rowData.finished_at === null && (hasPermission('daily_reports.edit') && (props.rowData.user_id === $page.props.auth.user.id || hasRole('Administrador')))"
                                     color="blue"

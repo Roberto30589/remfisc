@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
 
 
         $driverUser = User::firstOrCreate(
-        ['rut' => '11.111.111-9'], // RUT válido
+        ['rut' => '12.345.678-5'], // RUT único
         [
             'name'     => 'Conductor Prueba',
             'email'    => 'conductor@gmail.com',

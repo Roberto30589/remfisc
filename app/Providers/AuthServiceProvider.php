@@ -25,7 +25,15 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
          Gate::before(function ($user, $ability) {
-        return $user->hasRole('Super-Administrador') ? true : null;
+        return $user->hasRole('Super-Administrador') ? true : null;});
+
+        Gate::define('daily_reports.edit_all', function ($user) {
+            return $user->can('daily_reports.edit_all');
+        });
+        
+        Gate::define('daily_reports.edit', function ($user, DailyReport $dailyReport) {
+            return $user->hasPermissionTo('daily_reports.edit') && $user->id === $dailyReport->user_id;
     });
+
     }
 }
