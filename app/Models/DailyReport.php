@@ -24,7 +24,16 @@ class DailyReport extends Model
     'fuel_quantity',
     'fuel_observation',
     'finished_at',
-];
+    ];
+
+    protected static function booted()
+    {
+        static::saving(function ($report) {
+            $report->total_km = ($report->final_km ?? 0) - $report->initial_km;
+            $report->total_hm = ($report->final_hm ?? 0) - $report->initial_hm;
+        });
+    }
+
 
 
     public function user()

@@ -7,27 +7,17 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Yajra\DataTables\DataTables;
 
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 
-class ProjectController extends Controller implements HasMiddleware
+class ProjectController extends Controller 
 {
-    public static function middleware(): array
+    public function __construct()
     {
-        return [
-            // Permiso global para todo el recurso
-            new Middleware('permission:projects.view', only: ['index']),
-            
-            // Permisos específicos por acción
-            new Middleware('permission:projects.create', only: ['create', 'store']),
-            new Middleware('permission:projects.edit', only: ['edit', 'update']),
-            new Middleware('permission:projects.delete', only: ['destroy']),
-            
-            // Tu ruta personalizada de Datatables también necesita protección
-            new Middleware('permission:projects.view', only: ['table']),
-        ];
+        $this->middleware('permission:projects.view')->only(['index','table']);
+        $this->middleware('permission:projects.create')->only(['create','store']);
+        $this->middleware('permission:projects.edit')->only(['edit','update']);
+        $this->middleware('permission:projects.delete')->only(['destroy']);
     }
 
     // Método para mostrar la lista de proyectos
@@ -35,6 +25,7 @@ class ProjectController extends Controller implements HasMiddleware
     {
         return Inertia::render('Project/Index');
     }
+
     
     // Método para proporcionar los datos de los proyectos en formato DataTables
     public function table(Request $request)

@@ -1,28 +1,53 @@
 <?php
 
-namespace App\Http\Requests\Machine;
+namespace App\Http\Requests\DailyReport;
 
-use Illuminate\Validation\Rule;
+use Carbon\Carbon;
+use App\Http\Requests\DailyReport\DailyReportRequest;
 
-class UpdateMachineRequest extends MachineRequest
+class UpdateDailyReportRequest extends DailyReportRequest
 {
+    public function authorize(): bool
+    {
+        $dailyReport = $this->route('dailyReport');
+
+        return $this->user()->can('update', $dailyReport);
+    }
+
+
     public function rules(): array
     {
+        $isFinished = $this->boolean('is_finished');
+
         return [
-            'internal_id' => [
-                'required',
-                Rule::unique('machines', 'internal_id')->ignore($this->machine->id),
+            'project_id' => ['required', 'exists:projects,id'],
+            'machine_id' => ['required', 'exists:machines,id'],
+            'date'       => ['required', 'date'],
+            'initial_km' => ['required', 'numeric'],
+            'initial_hm' => ['required', 'numeric'],
+
+            'final_km' => [
+                'nullable',
+                $isFinished ? 'required' : 'nullable',
+                'numeric',
+                'gte:initial_km'
             ],
-            'plate' => [
-                'required',
-                Rule::unique('machines', 'plate')->ignore($this->machine->id),
+
+            'final_hm' => [
+                'nullable',
+                $isFinished ? 'required' : 'nullable',
+                'numeric',
+                'gte:initial_hm'
             ],
-            'machine_type_id' => 'required|exists:machine_types,id',
-            'brand' => 'nullable|string|max:255',
-            'model' => 'nullable|string|max:255',
-            'observations' => 'nullable|string',
-            'fuel_type' => 'required|string|max:100',
-            'fuel_capacity' => 'required|integer|min:1',
+
+            'work_description' => [
+                'nullable',
+                $isFinished ? 'required' : 'nullable',
+                'string'
+            ],
+
+            'fuel_quantity'    => ['nullable', 'numeric'],
+            'fuel_observation' => ['nullable', 'string'],
         ];
     }
 }

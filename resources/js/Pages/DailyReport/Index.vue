@@ -106,10 +106,9 @@ const deleteReport = (id) => {
                     Listado de Reportes diarios
                 </h2>
 
-                <!-- OJO: esta ruta EXISTE -->
                 <ButtonColor
                     color="green"
-                    :href="route('daily-reports.add')"
+                    :href="route('daily-reports.create')"
                 >
                     Crear reporte
                 </ButtonColor>

@@ -13,26 +13,17 @@ use App\Http\Requests\Machine\StoreMachineRequest;
 use App\Http\Requests\Machine\UpdateMachineRequest;
 
 
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 
-class MachineController extends Controller implements HasMiddleware
+class MachineController extends Controller
 {
-    public static function middleware(): array
+    public function __construct()
     {
-        return [
-            // Permiso global para todo el recurso
-            new Middleware('permission:machines.view', only: ['index']),
-            
-            // Permisos específicos por acción
-            new Middleware('permission:machines.create', only: ['create', 'store']),
-            new Middleware('permission:machines.edit', only: ['edit', 'update']),
-            new Middleware('permission:machines.delete', only: ['destroy']),
-            
-            // Tu ruta personalizada de Datatables también necesita protección
-            new Middleware('permission:machines.view', only: ['table']),
-        ];
+        $this->middleware('permission:machines.view')->only(['index','table']);
+        $this->middleware('permission:machines.create')->only(['create','store']);
+        $this->middleware('permission:machines.edit')->only(['edit','update']);
+        $this->middleware('permission:machines.delete')->only(['destroy']);
     }
+
 
     // Método para mostrar la lista de máquinas
     public function index()

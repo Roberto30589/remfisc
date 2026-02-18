@@ -49,19 +49,12 @@ Route::middleware('auth')->group(function () {
         });
     });
 
+
     //Rutas Reportes Diarios (USUARIOS)
-    Route::prefix('daily-reports')->name('daily-reports.')->group(function () {
-        //vistas
-        Route::get('/', [DailyReportController::class, 'index'])->name('index');
-        Route::get('/table', [DailyReportController::class, 'table'])->name('table');
-        Route::get('/add', [DailyReportController::class, 'add'])->name('add');
-        Route::get('/edit/{id}', [DailyReportController::class, 'edit'])->name('edit');
-        Route::get('/report/{id}', [DailyReportController::class, 'report'])->name('report');
-        //CRUD
-        Route::post('/create', [DailyReportController::class, 'create'])->name('create');
-        Route::put('/update/{id}', [DailyReportController::class, 'update'])->name('update');
-        Route::delete('/destroy/{id}', [DailyReportController::class, 'destroy'])->name('destroy');
-    });
+    Route::resource('daily-reports', DailyReportController::class)->except(['show']);
+    Route::get('daily-reports/table', [DailyReportController::class, 'table'])->name('daily-reports.table');
+    Route::get('daily-reports/{dailyReport}/report', [DailyReportController::class, 'report'])->name('daily-reports.report');
+
 
 
     //PERFIL USUARIO

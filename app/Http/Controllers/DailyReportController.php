@@ -7,160 +7,146 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Models\DailyReport;
 use App\Models\Project;
-use App\Models\User;
 use App\Models\Machine;
-use Carbon\Carbon;
-
+use App\Http\Requests\DailyReport\StoreDailyReportRequest;
+use App\Http\Requests\DailyReport\UpdateDailyReportRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class DailyReportController extends Controller
 {
-    // VISTAS REPORTES DIARIOS
+    public function __construct()
+    {
+        // Middleware de autorización para todas las rutas REST
+        $this->authorizeResource(DailyReport::class, 'dailyReport');
+    }
+
+    // LISTADO
     public function index()
     {
+        $this->authorize('viewAny', DailyReport::class);
+
         return Inertia::render('DailyReport/Index');
-    }
-
-    public function add()
-    {
-        $lastReport = DailyReport::where('user_id', auth()->id())
-            ->latest()
-            ->first();
-
-        $dailyReport = null;
-        $message = null;
-
-        if ($lastReport && is_null($lastReport->finished_at)) {
-            $dailyReport = $lastReport;
-            $lastReport = null;
-            $message = 'Tienes un reporte sin finalizar. Continuando desde donde quedaste.';
-        }
-
-        return Inertia::render('DailyReport/Form', [
-            'dailyReport' => $dailyReport,
-            'lastReport'  => $lastReport,
-            'projects'    => Project::all(),
-            'machines'    => Machine::all(),
-            'infoMessage' => $message,
-        ]);
-    }
-
-    public function edit($id)
-    {
-        $dailyReport = DailyReport::findOrFail($id);
-
-        return Inertia::render('DailyReport/Form', [
-            'dailyReport' => $dailyReport,
-            'projects'    => Project::all(),
-            'machines'    => Machine::all(),
-        ]);
-    }
-
-    // CREAR
-    public function create(Request $request)
-    {
-        $data = $request->validate([
-            'project_id' => 'required|exists:projects,id',
-            'machine_id' => 'required|exists:machines,id',
-            'date' => 'required|date',
-
-            'initial_km' => 'required|numeric',
-            'initial_hm' => 'required|numeric',
-
-            'final_km' => 'nullable|numeric|gte:initial_km',
-            'final_hm' => 'nullable|numeric|gte:initial_hm',
-
-            'work_description' => 'nullable|string',
-            'fuel_quantity' => 'nullable|numeric',
-            'fuel_observation' => 'nullable|string',
-        ]);
-
-        // calcular totales
-        $data['total_km'] = ($data['final_km'] ?? 0) - $data['initial_km'];
-        $data['total_hm'] = ($data['final_hm'] ?? 0) - $data['initial_hm'];
-
-        DailyReport::create([
-            ...$data,
-            'user_id' => auth()->id(),
-        ]);
-
-        return redirect()->route('daily-reports.index')
-            ->with('success', 'Reporte creado correctamente');
-    }
-
-    // ACTUALIZAR
-    public function update(Request $request, $id)
-    {
-        $report = DailyReport::findOrFail($id);
-        if($request->boolean('is_finished')) {
-            //date_format:Y-m-d H:i:s
-            $request['finished_at'] = Carbon::now()->format('Y-m-d H:i:s');
-        }
-
-        $data = $request->validate([
-            'project_id' => ['required', 'exists:projects,id'],
-            'machine_id' => ['required', 'exists:machines,id'],
-            'date'       => ['required', 'date'],
-            'initial_km' => ['required', 'numeric'],
-            'initial_hm' => ['required', 'numeric'],
-
-            'final_km'   => ['nullable', 'required_if_accepted:is_finished', 'numeric', 'gte:initial_km'],
-            'final_hm'   => ['nullable', 'required_if_accepted:is_finished', 'numeric', 'gte:initial_hm'],
-
-            'work_description' => ['nullable', 'required_if_accepted:is_finished', 'string'],
-            'fuel_quantity'    => ['nullable', 'numeric'],
-            'fuel_observation' => ['nullable', 'string'],
-            'finished_at'      => ['nullable', 'required_if_accepted:is_finished', 'date_format:Y-m-d H:i:s'],
-        ]);
-
-        // recalcular totales
-        $data['total_km'] = ($data['final_km'] ?? 0) - $data['initial_km'];
-        $data['total_hm'] = ($data['final_hm'] ?? 0) - $data['initial_hm'];
-
-        $report->update($data);
-
-        return redirect()->route('daily-reports.index')
-            ->with('success', 'Reporte actualizado correctamente');
-    }
-
-    public function destroy($id)
-    {
-        $dailyReport = DailyReport::findOrFail($id);
-        $dailyReport->delete();
-
-        return back()->with('success', 'Reporte diario eliminado correctamente');
     }
 
     // DATATABLE
     public function table(Request $request)
     {
-        $reports = DailyReport::with(['user', 'project', 'machine']);
+        $this->authorize('viewAny', DailyReport::class);
 
-        if (!auth()->user()->hasRole('Administrador')) {
+        $reports = DailyReport::query()
+            ->with(['user', 'project', 'machine']);
+
+        // Solo ver los suyos si no es administrador
+        if (!auth()->user()->hasAnyRole(['Administrador','Super-Administrador'])) {
             $reports->where('user_id', auth()->id());
         }
 
-        if (!$request->boolean('show_deleted')) {
-            $reports->whereNull('deleted_at');
-        } else {
+        if ($request->boolean('show_deleted')) {
             $reports->withTrashed();
         }
 
-        return DataTables::of($reports)->make(true);
+        return DataTables::of($reports)
+            ->addColumn('deleted', fn ($report) => $report->trashed())
+            ->make(true);
     }
 
-
-    public function report($id)
+    // FORM CREAR
+    public function create()
     {
-        $dailyReport = DailyReport::findOrFail($id);
-        $dailyReport->load(['user', 'project', 'machine']);
+        $this->authorize('create', DailyReport::class);
 
-        $data = [
-            'title' => 'Daily Report ' . $dailyReport->id,
+        $lastReport = DailyReport::where('user_id', auth()->id())
+            ->whereNull('finished_at')
+            ->latest()
+            ->first();
+
+        return Inertia::render('DailyReport/Form', [
+            'dailyReport' => $lastReport,
+            'projects'    => Project::select('id','name')->get(),
+            'machines'    => Machine::select('id','plate','internal_id')->get(),
+            'infoMessage' => $lastReport 
+                ? 'Tienes un reporte sin finalizar. Continuando desde donde quedaste.'
+                : null,
+        ]);
+    }
+
+    // FORM EDITAR
+    public function edit(DailyReport $dailyReport)
+    {
+        $dailyReport->load(['project','machine','user']);
+
+        return Inertia::render('DailyReport/Form', [
+            'dailyReport' => $dailyReport,
+            'projects'    => Project::select('id','name')->get(),
+            'machines'    => Machine::select('id','plate','internal_id')->get(),
+        ]);
+    }
+
+    // STORE
+    public function store(StoreDailyReportRequest $request)
+    {
+        $this->authorize('create', DailyReport::class);
+
+        $openReport = DailyReport::where('user_id', auth()->id())
+            ->whereNull('finished_at')
+            ->latest()
+            ->first();
+
+        if ($openReport) {
+            return redirect()
+                ->route('daily-reports.edit', $openReport)
+                ->with('info', 'Tienes un reporte sin finalizar. Continúa con ese.');
+        }
+
+        DailyReport::create([
+            ...$request->validated(),
+            'user_id' => auth()->id(),
+        ]);
+
+        return redirect()
+            ->route('daily-reports.index')
+            ->with('success', 'Reporte creado correctamente');
+    }
+
+    // UPDATE
+    public function update(UpdateDailyReportRequest $request, DailyReport $dailyReport)
+    {
+        $this->authorize('update', $dailyReport);
+
+        $data = $request->validated();
+
+        if ($request->boolean('is_finished')) {
+            $data['finished_at'] = now();
+        }
+
+        $dailyReport->update($data);
+
+        return redirect()
+            ->route('daily-reports.index')
+            ->with('success', 'Reporte actualizado correctamente');
+    }
+
+    // DELETE
+    public function destroy(DailyReport $dailyReport)
+    {
+        $this->authorize('delete', $dailyReport);
+
+        $dailyReport->delete();
+
+        return back()->with('success', 'Reporte eliminado correctamente');
+    }
+
+    // PDF (método personalizado → requiere authorize manual)
+    public function report(DailyReport $dailyReport)
+    {
+        $this->authorize('view', $dailyReport);
+
+        $dailyReport->load(['user','project','machine']);
+
+        $pdf = Pdf::loadView('report.daily_report', [
+            'title'  => 'Daily Report ' . $dailyReport->id,
             'report' => $dailyReport
-        ];
-
-        $pdf = Pdf::loadView('report.daily_report', $data);
+        ]);
 
         return $pdf->stream('daily_report_' . $dailyReport->id . '.pdf');
     }

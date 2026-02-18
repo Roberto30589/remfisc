@@ -1,20 +1,31 @@
 <?php
 
-namespace App\Http\Requests\Machine;
+namespace App\Http\Requests\DailyReport;
 
-class StoreMachineRequest extends MachineRequest
+class StoreDailyReportRequest extends DailyReportRequest
 {
+    public function authorize(): bool
+    {
+        return $this->user()->can('create', \App\Models\DailyReport::class);
+    }
+
+
     public function rules(): array
     {
         return [
-            'internal_id' => 'required|unique:machines,internal_id',
-            'plate' => 'required|unique:machines,plate',
-            'machine_type_id' => 'required|exists:machine_types,id',
-            'brand' => 'nullable|string|max:255',
-            'model' => 'nullable|string|max:255',
-            'observations' => 'nullable|string',
-            'fuel_type' => 'required|string|max:100',
-            'fuel_capacity' => 'required|integer|min:1',
+            'project_id' => 'required|exists:projects,id',
+            'machine_id' => 'required|exists:machines,id',
+            'date' => 'required|date',
+
+            'initial_km' => 'required|numeric',
+            'initial_hm' => 'required|numeric',
+
+            'final_km' => 'nullable|numeric|gte:initial_km',
+            'final_hm' => 'nullable|numeric|gte:initial_hm',
+
+            'work_description' => 'nullable|string',
+            'fuel_quantity' => 'nullable|numeric',
+            'fuel_observation' => 'nullable|string',
         ];
     }
 }

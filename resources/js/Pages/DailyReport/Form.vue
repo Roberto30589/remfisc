@@ -50,7 +50,7 @@ const totalHm = computed(() => {
 const submit = () => {
     props.dailyReport
         ? form.put(route('daily-reports.update', props.dailyReport.id))
-        : form.post(route('daily-reports.create'))
+        : form.post(route('daily-reports.store'))
 }
 
 const finishReport = () => {
