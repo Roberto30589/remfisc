@@ -97,12 +97,7 @@ class DailyReportController extends Controller
             'machines'    => Machine::select('id','plate','internal_id')->get(),
 
             //
-            'maintenanceTypes' => MaintenanceType::select(
-                'id',
-                'name',
-                'unit',
-                'requires_quantity'
-            )->get()
+            'maintenanceTypes' => MaintenanceType::all(),
         ]);
     }
 
@@ -191,9 +186,13 @@ class DailyReportController extends Controller
             }
         });
 
+        $message = $request->boolean('is_finished')
+            ? 'Reporte terminado correctamente'
+            : 'Reporte actualizado correctamente';
+
         return redirect()
             ->route('daily-reports.index')
-            ->with('success', 'Reporte actualizado correctamente');
+            ->with('success', $message);
     }
 
     // DELETE

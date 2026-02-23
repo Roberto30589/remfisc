@@ -262,7 +262,7 @@ const finishReport = () => {
                                     class="w-full"
                                     />
 
-                                    <span v-else class="text-gray-400 italic">
+                                    <span v-else class="text-gray-500 italic">
                                         No aplica
                                     </span>
 
@@ -275,7 +275,7 @@ const finishReport = () => {
                                     <TextInput
                                     v-model="maintenance.observation"
                                     class="w-full"
-                                    placeholder="Detalle opcional"
+                                    placeholder="Observaciones (opcional)"
                                     />
 
                                 </td>
@@ -297,8 +297,9 @@ const finishReport = () => {
                 </ButtonColor>
 
                 <ButtonColor
+                    v-if="props.dailyReport"
                     color="blue"
-                    :disabled="!props.dailyReport || form.is_finished || form.processing"
+                    :disabled="form.is_finished || form.processing"
                     @click="finishReport">
                     Terminar Reporte
                 </ButtonColor>
