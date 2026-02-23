@@ -59,5 +59,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call(MachineSeeder::class);
         $this->call(ProjectSeeder::class);
+        $this->call(MaintenanceTypeSeeder::class);
     }
 }

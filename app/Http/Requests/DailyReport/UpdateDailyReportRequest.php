@@ -14,38 +14,48 @@ class UpdateDailyReportRequest extends DailyReportRequest
     }
 
     public function rules(): array
-    {
-        $isFinished = $this->boolean('is_finished');
+{
+    $isFinished = $this->boolean('is_finished');
 
-        return [
-            'project_id' => ['required', 'exists:projects,id'],
-            'machine_id' => ['required', 'exists:machines,id'],
-            'date'       => ['required', 'date'],
-            'initial_km' => ['required', 'numeric'],
-            'initial_hm' => ['required', 'numeric'],
+    return [
+        'project_id' => ['required', 'exists:projects,id'],
+        'machine_id' => ['required', 'exists:machines,id'],
+        'date' => ['required', 'date'],
 
-            'final_km' => [
-                'nullable',
-                $isFinished ? 'required' : 'nullable',
-                'numeric',
-                'gte:initial_km'
-            ],
+        'initial_km' => ['required', 'numeric'],
+        'initial_hm' => ['required', 'numeric'],
 
-            'final_hm' => [
-                'nullable',
-                $isFinished ? 'required' : 'nullable',
-                'numeric',
-                'gte:initial_hm'
-            ],
+        'final_km' => [
+            $isFinished ? 'required' : 'nullable',
+            'numeric',
+            'gte:initial_km'
+        ],
 
-            'work_description' => [
-                'nullable',
-                $isFinished ? 'required' : 'nullable',
-                'string'
-            ],
+        'final_hm' => [
+            $isFinished ? 'required' : 'nullable',
+            'numeric',
+            'gte:initial_hm'
+        ],
 
-            'fuel_quantity'    => ['nullable', 'numeric'],
-            'fuel_observation' => ['nullable', 'string'],
-        ];
-    }
+        'work_description' => [
+            $isFinished ? 'required' : 'nullable',
+            'string'
+        ],
+
+        //  MANTENCIONES
+        'maintenances' => ['nullable', 'array'],
+        'maintenances.*.maintenance_type_id' => [
+            'required',
+            'exists:maintenance_types,id'
+        ],
+        'maintenances.*.quantity' => [
+            'nullable',
+            'numeric'
+        ],
+        'maintenances.*.observation' => [
+            'nullable',
+            'string'
+        ],
+    ];
+}
 }

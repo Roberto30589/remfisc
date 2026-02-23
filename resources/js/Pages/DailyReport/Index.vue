@@ -13,19 +13,25 @@ import Swal from 'sweetalert2'
 import { onMounted, ref } from 'vue'
 import { usePermission } from '@/Composables/permission'
 
-const { hasRole , hasPermission, hasPermissions } = usePermission();
+const { hasRole, hasPermission } = usePermission()
 
+// Registrar DataTables
 DataTable.use(DataTablesCore)
 
+// Columnas de la tabla
 const columns = [
     { data: 'id', title: 'Nº', width: '1%' },
-    { data: 'date', render: '#fecha', title: 'Fecha' },
-    { data: 'user.name', title: 'Usuario' },
-    { data: 'project.name', title: 'Obra' },
-    { data: 'machine.plate', title: 'Patente' },
-    { data: 'machine.internal_id', title: 'ID Interno' },
-    { data: 'machine.brand', title: 'Marca' },
-    { data: 'machine.model', title: 'Modelo' },
+    { 
+        data: 'date', 
+        render: (data, type, row) => row.date ? new Date(row.date).toLocaleDateString('es-CL').replace(/\-/g, '/') : '-', 
+        title: 'Fecha' 
+    },
+    { data: 'user.name', title: 'Usuario', defaultContent: '-' },
+    { data: 'project.name', title: 'Obra', defaultContent: '-' },
+    { data: 'machine.plate', title: 'Patente', defaultContent: '-' },
+    { data: 'machine.internal_id', title: 'ID Interno', defaultContent: '-' },
+    { data: 'machine.brand', title: 'Marca', defaultContent: '-' },
+    { data: 'machine.model', title: 'Modelo', defaultContent: '-' },
     {
         data: null,
         render: '#action',
@@ -37,10 +43,9 @@ const columns = [
     }
 ]
 
-
+// Ref de la tabla y opciones
 let dt
 const table = ref()
-
 const dt_options = {
     responsive: true,
     serverSide: true,
@@ -51,8 +56,8 @@ onMounted(() => {
     dt = table.value.dt
 })
 
+// Eliminación de reporte
 const deleting = ref(false)
-
 const deleteReport = (id) => {
     if (deleting.value) return
 
@@ -67,7 +72,7 @@ const deleteReport = (id) => {
         if (result.isConfirmed) {
             deleting.value = true
 
-            router.delete(route('daily-reports.destroy',id, { dailyReport: id }), {
+            router.delete(route('daily-reports.destroy', { daily_report: id }), {
                 preserveScroll: true,
                 onSuccess: () => {
                     Swal.fire({
@@ -76,7 +81,6 @@ const deleteReport = (id) => {
                         showConfirmButton: false,
                         timer: 1500
                     })
-
                     dt.ajax.reload(null, false)
                 },
                 onFinish: () => {
@@ -99,9 +103,10 @@ const deleteReport = (id) => {
     <Head title="Reportes diarios" />
 
     <AppMain>
+        <!-- Header -->
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-gray-800">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
                     <font-awesome-icon :icon="faClipboardList"/>
                     Listado de Reportes diarios
                 </h2>
@@ -115,6 +120,7 @@ const deleteReport = (id) => {
             </div>
         </template>
 
+        <!-- Tabla -->
         <div class="py-4">
             <div class="mx-auto max-w-7xl">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg p-4">
@@ -126,19 +132,24 @@ const deleteReport = (id) => {
                         ref="table"
                         class="cell-border compact"
                     >
+                        <!-- Render fecha seguro -->
                         <template #fecha="props">
-                            {{ new Date(props.rowData.date).toLocaleDateString('es-CL').replace(/\-/g, '/') }}
+                            {{ props.rowData.date ? new Date(props.rowData.date).toLocaleDateString('es-CL').replace(/\-/g, '/') : '-' }}
                         </template>
+
+                        <!-- Render botones de acción -->
                         <template #action="props">
                             <ButtonGroup>
+                                <!-- Editar si no finalizado y tiene permiso -->
                                 <ButtonColor
-                                    v-if="props.rowData.finished_at === null && (hasPermission('daily_reports.edit') && (props.rowData.user_id === $page.props.auth.user.id || hasRole('Administrador')))"
+                                    v-if="props.rowData.finished_at === null && hasPermission('daily_reports.edit') && (props.rowData.user_id === $page.props.auth.user.id || hasRole('Administrador'))"
                                     color="blue"
                                     :href="route('daily-reports.edit', { id: props.rowData.id })"
                                 >
                                     <FontAwesomeIcon :icon="faPen" class="size-4" />
                                 </ButtonColor>
-                                
+
+                                <!-- Ver PDF -->
                                 <ButtonColor
                                     v-else
                                     color="teal"
@@ -156,7 +167,7 @@ const deleteReport = (id) => {
                                     title="Eliminar"
                                     :disabled="deleting"
                                     class="disabled:opacity-40 disabled:cursor-not-allowed"
-                                    @mousedown.stop="deleteReport(props.rowData.id)"
+                                    @click.stop="deleteReport(props.rowData.id)"
                                 >
                                     <FontAwesomeIcon :icon="faTrash" class="size-4" />
                                 </ButtonColor>

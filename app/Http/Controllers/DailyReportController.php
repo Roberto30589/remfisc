@@ -8,9 +8,11 @@ use Yajra\DataTables\DataTables;
 use App\Models\DailyReport;
 use App\Models\Project;
 use App\Models\Machine;
+use App\Models\MaintenanceType; 
 use App\Http\Requests\DailyReport\StoreDailyReportRequest;
 use App\Http\Requests\DailyReport\UpdateDailyReportRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class DailyReportController extends Controller
 {
@@ -72,17 +74,35 @@ class DailyReportController extends Controller
             'lastReport'  => $last_daily_report, // Para prellenar el formulario con los datos del último reporte abierto
             'projects'    => Project::select('id','name')->get(),
             'machines'    => Machine::select('id','plate','internal_id')->get(),
+
+            // En lugar de enviar un array fijo de mantenciones, se envían las mantenciones definidas en la base de datos para que el formulario sea dinámico y se puedan agregar nuevas mantenciones sin necesidad de modificar el código.
+            'maintenanceTypes' => MaintenanceType::all(),
         ]);
     }
 
     // FORM EDITAR
     public function edit(DailyReport $daily_report)
     {
-        $daily_report->load(['project','machine','user']);
+        $daily_report->load([
+            'project',
+            'machine',
+            'user',
+            'maintenances',
+            'maintenances.maintenanceType'
+        ]);
+
         return Inertia::render($this->form, [
             'dailyReport' => $daily_report,
             'projects'    => Project::select('id','name')->get(),
             'machines'    => Machine::select('id','plate','internal_id')->get(),
+
+            //
+            'maintenanceTypes' => MaintenanceType::select(
+                'id',
+                'name',
+                'unit',
+                'requires_quantity'
+            )->get()
         ]);
     }
 
@@ -93,9 +113,9 @@ class DailyReportController extends Controller
 
         //buscamos si el usuario tiene un reporte abierto (sin finished_at)
         $open_daily_report = DailyReport::where('user_id', auth()->id())
-        ->whereNull('finished_at')
-        ->latest()
-        ->first();
+            ->whereNull('finished_at')
+            ->latest()
+            ->first();
         
         //Si el usuario tiene un reporte abierto, no se le permite crear uno nuevo hasta que termine el anterior. En su lugar, se le redirige al reporte abierto para que lo complete.
         if ($open_daily_report) {
@@ -105,10 +125,31 @@ class DailyReportController extends Controller
         }
 
         //Si no tiene reportes abiertos, se le permite crear uno nuevo
-        DailyReport::create([
-            ...$request->validated(),
-            'user_id' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($request) {
+
+            $data = $request->validated();
+
+            $maintenances = $data['maintenances'] ?? [];
+            unset($data['maintenances']);
+
+            $report = DailyReport::create([
+                ...$data,
+                'user_id' => auth()->id(),
+            ]);
+
+            // Filtrar mantenciones vacías antes de guardar
+            $filtered = collect($maintenances)
+                ->filter(fn ($m) =>
+                    !empty($m['quantity']) ||
+                    !empty($m['observation'])
+                )
+                ->values()
+                ->toArray();
+
+            if (!empty($filtered)) {
+                $report->maintenances()->createMany($filtered);
+            }
+        });
 
         return redirect()
             ->route('daily-reports.index')
@@ -119,11 +160,37 @@ class DailyReportController extends Controller
     public function update(UpdateDailyReportRequest $request, DailyReport $daily_report)
     {
         $this->authorize('update', $daily_report);
-        $data = $request->validated();
-        if ($request->boolean('is_finished')) {
-            $data['finished_at'] = now();
-        }
-        $daily_report->update($data);
+
+        DB::transaction(function () use ($request, $daily_report) {
+
+            $data = $request->validated();
+
+            $maintenances = $data['maintenances'] ?? [];
+            unset($data['maintenances']);
+
+            if ($request->boolean('is_finished')) {
+                $data['finished_at'] = now();
+            }
+
+            $daily_report->update($data);
+
+            // borrar mantenciones anteriores (soft delete)
+            $daily_report->maintenances()->delete();
+
+            // Filtrar mantenciones vacías
+            $filtered = collect($maintenances)
+                ->filter(fn ($m) =>
+                    !empty($m['quantity']) ||
+                    !empty($m['observation'])
+                )
+                ->values()
+                ->toArray();
+
+            if (!empty($filtered)) {
+                $daily_report->maintenances()->createMany($filtered);
+            }
+        });
+
         return redirect()
             ->route('daily-reports.index')
             ->with('success', 'Reporte actualizado correctamente');
@@ -141,11 +208,20 @@ class DailyReportController extends Controller
     public function show(DailyReport $daily_report)
     {
         $this->authorize('view', $daily_report);
-        $daily_report->load(['user','project','machine']);
+
+        $daily_report->load([
+            'user',
+            'project',
+            'machine',
+            'maintenances',
+            'maintenances.maintenanceType'
+        ]);
+
         $pdf = Pdf::loadView('report.daily_report', [
             'title'  => 'Daily Report ' . $daily_report->id,
             'report' => $daily_report
         ]);
+
         return $pdf->stream('daily_report_' . $daily_report->id . '.pdf');
     }
 }
