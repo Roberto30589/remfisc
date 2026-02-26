@@ -1,60 +1,83 @@
 <script setup>
 import AppMain from '@/Layouts/AppMain.vue'
-import { useForm, usePage } from '@inertiajs/vue3'
+import { useForm, usePage, router } from '@inertiajs/vue3'
 import ButtonColor from '@/Components/ButtonColor.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
+// Props desde backend
+// dailyReport puede ser null si estamos creando
 const props = defineProps({
     dailyReport: Object,
     projects: Array,
     machines: Array,
     lastReport: Object,
-    maintenanceTypes: {
-        type: Array,
-        default: () => []
-    },
+    maintenanceTypes: { type:Array, default:()=>[] }
 })
 
 const user = usePage().props.auth.user
 
-//Crear mapa optimizado para no usar find() en cada celda
-const maintenanceTypeMap = computed(() => {
-    return Object.fromEntries(
-        props.maintenanceTypes.map(t => [t.id, t])
-    )
-})
 
-// Normalizar mantenciones cuando se edita
+// ==========================================================================
+// Mantenciones
+// ==========================================================================
+
+// Mapa id → tipo para acceso rápido en template
+// Evita búsquedas repetidas dentro del render
+const maintenanceTypeMap = computed(() =>
+    Object.fromEntries(props.maintenanceTypes.map(t => [t.id, t]))
+)
+
+// Genera estructura base de mantenciones
+// Siempre recorremos todos los tipos para mantener consistencia
 const buildMaintenances = () => {
+    return props.maintenanceTypes.map(type => {
 
-    // Si estamos editando
-    if (props.dailyReport?.maintenances?.length) {
+        const existing = props.dailyReport?.maintenances?.find(
+            m => m.maintenance_type_id === type.id
+        )
 
-        return props.maintenanceTypes.map(type => {
-            const existing = props.dailyReport.maintenances
-                .find(m => m.maintenance_type_id === type.id)
+        return {
+            maintenance_type_id: type.id,
+            quantity: existing?.quantity ?? null,
+            observation: existing?.observation ?? ''
+        }
+    })
+}
 
-            return {
-                maintenance_type_id: type.id,
-                quantity: existing?.quantity ?? null,
-                observation: existing?.observation ?? '',
-            }
-        })
-    }
 
-    // Si estamos creando, partimos con mantenciones vacías
-    return props.maintenanceTypes.map(type => ({
-        maintenance_type_id: type.id,
-        quantity: null,
-        observation: '',
+// ==========================================================================
+// Anomalías
+// ==========================================================================
+
+// Precarga anomalías si estamos editando
+// Separamos fotos existentes de las nuevas (File objects)
+const buildAnomalies = () => {
+
+    if (!props.dailyReport?.anomalies?.length) return []
+
+    return props.dailyReport.anomalies.map(a => ({
+        id: a.id,
+        description: a.description ?? '',
+        severity: a.severity ?? '',
+        existing_photos: a.pictures?.map(p => p.id) ?? [], // solo IDs
+        pictures: a.pictures ?? [], // para mostrar
+        photos: [] // nuevas imágenes
     }))
 }
 
+
+// ==========================================================================
+// Inicialización del formulario
+// ==========================================================================
+
+// Reglas:
+// - Crear → usar datos del último reporte si existen
+// - Editar → priorizar datos actuales
 const form = useForm({
     project_id: props.dailyReport?.project_id ?? props.lastReport?.project_id ?? null,
     machine_id: props.dailyReport?.machine_id ?? props.lastReport?.machine_id ?? null,
@@ -66,34 +89,138 @@ const form = useForm({
     work_description: props.dailyReport?.work_description ?? '',
     finished_at: props.dailyReport?.finished_at ?? null,
     is_finished: false,
-
-    maintenances: buildMaintenances()
+    maintenances: buildMaintenances(),
+    anomalies: buildAnomalies()
 })
 
-const totalKm = computed(() => {
-    return form.final_km > 0 && form.initial_km > 0
+
+// ==========================================================================
+// Cálculos derivados (no persistentes)
+// ==========================================================================
+
+const totalKm = computed(() =>
+    form.final_km > 0 && form.initial_km > 0
         ? form.final_km - form.initial_km
         : ''
-})
+)
 
-const totalHm = computed(() => {
-    return form.final_hm > 0 && form.initial_hm > 0
+const totalHm = computed(() =>
+    form.final_hm > 0 && form.initial_hm > 0
         ? form.final_hm - form.initial_hm
         : ''
+)
+
+
+// ==========================================================================
+// Finalizar reporte
+// ==========================================================================
+
+// Marca el reporte como finalizado
+// Se envía como update normal con flag adicional
+const finishReport = () => {
+    form.transform(data => ({
+        ...data,
+        is_finished: true
+    }))
+    .put(route('daily-reports.update', props.dailyReport.id), {
+        forceFormData: true
+    })
+}
+
+
+// ==========================================================================
+// Manejo offline básico
+// ==========================================================================
+
+// Estrategia simple:
+// - Sin conexión → guardar en localStorage
+// - Cuando vuelve internet → reenviar
+// Nota: no hay deduplicación ni control de errores avanzado
+
+const OFFLINE_KEY = "offline_daily_reports"
+
+function saveOffline(data){
+    const existing = JSON.parse(localStorage.getItem(OFFLINE_KEY) || "[]")
+    existing.push(data)
+    localStorage.setItem(OFFLINE_KEY, JSON.stringify(existing))
+
+    alert("Sin conexión. El reporte se enviará automáticamente cuando vuelva internet.")
+}
+
+function trySendOffline(){
+
+    if(!navigator.onLine) return
+
+    const stored = JSON.parse(localStorage.getItem(OFFLINE_KEY) || "[]")
+    if(!stored.length) return
+
+    stored.forEach(r => {
+        router.post(route('daily-reports.store'), r)
+    })
+
+    localStorage.removeItem(OFFLINE_KEY)
+}
+
+// Escuchamos evento online al montar componente
+onMounted(() => {
+    window.addEventListener('online', trySendOffline)
+    trySendOffline()
 })
 
+
+// ==========================================================================
+// Submit principal
+// ==========================================================================
+
 const submit = () => {
+
+    const payload = form.data()
+
+    if(!navigator.onLine){
+        saveOffline(payload)
+        return
+    }
+
     props.dailyReport
-        ? form.put(route('daily-reports.update', props.dailyReport.id))
-        : form.post(route('daily-reports.store'))
+        ? form.put(route('daily-reports.update', props.dailyReport.id), { forceFormData: true })
+        : form.post(route('daily-reports.store'), { forceFormData: true })
 }
 
-const finishReport = () => {
-    form.is_finished = true
-    submit()
+
+// ==========================================================================
+// Gestión de anomalías
+// ==========================================================================
+
+function addAnomaly(){
+    form.anomalies.push({
+        description: '',
+        severity: '',
+        existing_photos: [],
+        pictures: [],
+        photos: []
+    })
+}
+
+function removeAnomaly(index){
+    form.anomalies.splice(index, 1)
+}
+
+function handlePhotos(e, index){
+
+    const files = Array.from(e.target.files)
+
+    if(!form.anomalies[index].photos){
+        form.anomalies[index].photos = []
+    }
+
+    form.anomalies[index].photos.push(...files)
+}
+
+// Elimina una foto nueva (aún no guardada)
+function removePhoto(aIndex, pIndex){
+    form.anomalies[aIndex].photos.splice(pIndex, 1)
 }
 </script>
-
 <template>
 <AppMain>
     <template #header>
@@ -286,6 +413,106 @@ const finishReport = () => {
 
                     </table>
 
+                </div>
+
+            </div>
+            <!-- ANOMALIAS -->
+            <div class="col-span-2 mt-8">
+
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-semibold">ANOMALÍAS DETECTADAS</h3>
+
+                    <ButtonColor type="button" color="yellow" @click="addAnomaly">
+                        + Agregar anomalía
+                    </ButtonColor>
+                </div>
+
+                <div
+                    v-for="(anomaly,i) in form.anomalies"
+                    :key="i"
+                    class="border rounded p-4 mb-4 bg-orange-50"
+                >
+                    <div class="grid grid-cols-2 gap-3">
+
+                        <!-- descripción -->
+                        <div class="col-span-2">
+                            <InputLabel value="Descripción anomalía" />
+                            <textarea
+                                v-model="anomaly.description"
+                                class="w-full rounded border-gray-300"
+                            />
+                        </div>
+
+                        <!-- gravedad -->
+                        <div>
+                            <InputLabel value="Gravedad" />
+                            <SelectInput v-model="anomaly.severity">
+                                <option value="">Seleccione</option>
+                                <option value="leve">Leve</option>
+                                <option value="media">Media</option>
+                                <option value="critica">Crítica</option>
+                            </SelectInput>
+                        </div>
+
+                        <!-- subir fotos -->
+                        <div>
+                            <InputLabel value="Fotos anomalía" />
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                capture="environment"
+                                @change="handlePhotos($event,i)"
+                                class="block w-full text-sm"
+                            />
+                        </div>
+
+                        <!-- fotos guardadas -->
+                        <div
+                            v-for="photo in anomaly.pictures"
+                            :key="'existing-'+photo.id"
+                            class="relative"
+                        >
+                            <img
+                                :src="'/storage/' + photo.path"
+                                class="w-24 h-24 object-cover rounded border"
+                            />
+                            <button
+                                type="button"
+                                class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2"
+                                @click="removeExistingPhoto(i, photo.id)"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <!-- fotos nuevas -->
+                        <div
+                            v-for="(photo,pIndex) in anomaly.photos"
+                            :key="'new-'+pIndex"
+                            class="relative"
+                        >
+                            <img
+                                :src="URL.createObjectURL(photo)"
+                                class="w-24 h-24 object-cover rounded border"
+                            />
+                            <button
+                                type="button"
+                                class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2"
+                                @click="removeNewPhoto(i,pIndex)"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <!-- eliminar anomalía -->
+                        <div class="col-span-2">
+                            <ButtonColor type="button" color="red" @click="removeAnomaly(i)">
+                                Eliminar anomalía
+                            </ButtonColor>
+                        </div>
+
+                    </div>
                 </div>
 
             </div>

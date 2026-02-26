@@ -22,7 +22,6 @@ return new class extends Migration
             $table->foreignId('machine_id')
                 ->constrained('machines')
                 ->cascadeOnDelete();
-
             $table->date('date');
 
             $table->decimal('initial_km', 10, 2)->nullable();

@@ -68,4 +68,8 @@ class DailyReport extends Model
     {
         return $this->hasMany(Maintenance::class);
     }
+    public function anomalies()
+    {
+        return $this->hasMany(Anomaly::class);
+    }
 }

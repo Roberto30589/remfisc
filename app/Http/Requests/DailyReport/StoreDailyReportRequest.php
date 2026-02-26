@@ -39,6 +39,13 @@ class StoreDailyReportRequest extends DailyReportRequest
             'nullable',
             'string'
         ],
+        // ANOMALÍAS
+        'anomalies' => ['nullable', 'array'],
+        'anomalies.*.description' => ['nullable', 'string'],
+        'anomalies.*.picture_id' => ['nullable', 'exists:pictures,id'],
+        // 'anomalies.*.files' => ['nullable', 'array'], --- IGN
+        'anomalies.*.severity' => ['nullable', 'string'],
+        
     ];
 }
 }

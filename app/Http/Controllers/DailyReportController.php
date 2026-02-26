@@ -88,14 +88,15 @@ class DailyReportController extends Controller
             'machine',
             'user',
             'maintenances',
-            'maintenances.maintenanceType'
+            'maintenances.maintenanceType',
+            'anomalies',
+            'anomalies.pictures'
         ]);
 
         return Inertia::render($this->form, [
             'dailyReport' => $daily_report,
             'projects'    => Project::select('id','name')->get(),
             'machines'    => Machine::select('id','plate','internal_id')->get(),
-
             //
             'maintenanceTypes' => MaintenanceType::all(),
         ]);
@@ -105,34 +106,34 @@ class DailyReportController extends Controller
     public function store(StoreDailyReportRequest $request)
     {
         $this->authorize('create', DailyReport::class);
-
-        //buscamos si el usuario tiene un reporte abierto (sin finished_at)
+        // Verificar si el usuario tiene un reporte abierto (sin fecha de finalización)
         $open_daily_report = DailyReport::where('user_id', auth()->id())
             ->whereNull('finished_at')
             ->latest()
             ->first();
-        
-        //Si el usuario tiene un reporte abierto, no se le permite crear uno nuevo hasta que termine el anterior. En su lugar, se le redirige al reporte abierto para que lo complete.
+        // Si tiene un reporte abierto, redirigirlo a ese reporte en lugar de crear uno nuevo
         if ($open_daily_report) {
             return redirect()
                 ->route('daily-reports.edit', $open_daily_report)
                 ->with('warning', 'Tienes un reporte sin finalizar. Continúa con ese.');
         }
-
-        //Si no tiene reportes abiertos, se le permite crear uno nuevo
+        // Si no tiene reportes abiertos, crear uno nuevo
         DB::transaction(function () use ($request) {
 
             $data = $request->validated();
 
             $maintenances = $data['maintenances'] ?? [];
-            unset($data['maintenances']);
+            $anomalies    = $data['anomalies'] ?? [];
 
+            unset($data['maintenances'], $data['anomalies']);
+
+            //Crear reporte
             $report = DailyReport::create([
                 ...$data,
                 'user_id' => auth()->id(),
             ]);
 
-            // Filtrar mantenciones vacías antes de guardar
+            // Guardar mantenciones
             $filtered = collect($maintenances)
                 ->filter(fn ($m) =>
                     !empty($m['quantity']) ||
@@ -144,6 +145,34 @@ class DailyReportController extends Controller
             if (!empty($filtered)) {
                 $report->maintenances()->createMany($filtered);
             }
+
+            //Guardar anomalías + fotos
+            foreach ($anomalies as $index => $anom) {
+
+                // Si no tiene descripción ni fotos → saltar
+                if (empty($anom['description']) && empty($anom['photos'])) {
+                    continue;
+                }
+
+                $anomaly = $report->anomalies()->create([
+                    'description' => $anom['description'] ?? '',
+                    'severity'    => $anom['severity'] ?? null,
+                ]);
+
+                // Guardar fotos correctamente
+                if ($request->hasFile("anomalies.$index.photos")) {
+
+                    foreach ($request->file("anomalies.$index.photos") as $file) {
+
+                        $path = $file->store('anomalies', 'public');
+
+                        $anomaly->pictures()->create([
+                            'path' => $path
+                        ]);
+                    }
+                }
+            }
+
         });
 
         return redirect()
@@ -156,24 +185,26 @@ class DailyReportController extends Controller
     {
         $this->authorize('update', $daily_report);
 
-        DB::transaction(function () use ($request, $daily_report) {
+        $data = $request->validated();
 
-            $data = $request->validated();
+        $maintenances = $data['maintenances'] ?? [];
+        $anomalies    = $data['anomalies'] ?? [];
 
-            $maintenances = $data['maintenances'] ?? [];
-            unset($data['maintenances']);
+        unset($data['maintenances'], $data['anomalies']);
 
-            if ($request->boolean('is_finished')) {
-                $data['finished_at'] = now();
-            }
+        if ($request->boolean('is_finished')) {
+            $data['finished_at'] = now();
+        }
+        // Utilizamos transacciones para asegurarnos de que todas las operaciones relacionadas con la actualización del reporte se realicen correctamente. Si ocurre un error en cualquier parte del proceso, se hará un rollback y no se guardarán cambios parciales.
+        DB::beginTransaction();
 
+        try {
+            //ACTUALIZAR REPORTE
             $daily_report->update($data);
-
-            // borrar mantenciones anteriores (soft delete)
+            // mantenciones
             $daily_report->maintenances()->delete();
-
-            // Filtrar mantenciones vacías
-            $filtered = collect($maintenances)
+            // Filtrar mantenciones para eliminar aquellas que no tienen cantidad ni observación, evitando crear registros vacíos
+            $filteredMaintenances = collect($maintenances)
                 ->filter(fn ($m) =>
                     !empty($m['quantity']) ||
                     !empty($m['observation'])
@@ -181,18 +212,100 @@ class DailyReportController extends Controller
                 ->values()
                 ->toArray();
 
-            if (!empty($filtered)) {
-                $daily_report->maintenances()->createMany($filtered);
+            if (!empty($filteredMaintenances)) {
+                $daily_report->maintenances()->createMany($filteredMaintenances);
             }
-        });
+            
 
-        $message = $request->boolean('is_finished')
-            ? 'Reporte terminado correctamente'
-            : 'Reporte actualizado correctamente';
+            // anomalías
+            // IDs que vienen desde el frontend
+            $incomingIds = collect($anomalies)
+                ->pluck('id')
+                ->filter()
+                ->toArray();
 
-        return redirect()
-            ->route('daily-reports.index')
-            ->with('success', $message);
+            // Eliminar anomalías removidas
+            $daily_report->anomalies()
+                ->whereNotIn('id', $incomingIds)
+                ->get()
+                ->each(function ($anomaly) {
+                    foreach ($anomaly->pictures as $pic) {
+                        if (\Storage::disk('public')->exists($pic->path)) {
+                            \Storage::disk('public')->delete($pic->path);
+                        }
+                        $pic->delete();
+                    }
+                    $anomaly->delete();
+                });
+
+            // Crear o actualizar anomalías
+            foreach ($anomalies as $index => $anom) {
+
+                if (!empty($anom['id'])) {
+                    $anomaly = $daily_report->anomalies()->find($anom['id']);
+
+                    if ($anomaly) {
+                        $anomaly->update([
+                            'description' => $anom['description'] ?? '',
+                            'severity'    => $anom['severity'] ?? null,
+                        ]);
+                    }
+                } else {
+                    $anomaly = $daily_report->anomalies()->create([
+                        'description' => $anom['description'] ?? '',
+                        'severity'    => $anom['severity'] ?? null,
+                    ]);
+                }
+
+                if (!$anomaly) continue;
+
+                // IDs de fotos que vienen desde el frontend para esta anomalía
+                $existingIds = collect($anom['existing_photos'] ?? [])
+                    ->map(function ($photo) {
+                        if (is_array($photo) && isset($photo['id'])) {
+                            return $photo['id'];
+                        }
+                        if (is_numeric($photo)) {
+                            return $photo;
+                        }
+                        return null;
+                    })
+                    ->filter()
+                    ->values()
+                    ->toArray();
+
+                // Eliminar fotos quitadas
+                $anomaly->pictures()
+                    ->whereNotIn('id', $existingIds)
+                    ->get()
+                    ->each(function ($pic) {
+                        if (\Storage::disk('public')->exists($pic->path)) {
+                            \Storage::disk('public')->delete($pic->path);
+                        }
+                        $pic->delete();
+                    });
+
+                // Guardar nuevas fotos
+                if ($request->hasFile("anomalies.$index.photos")) {
+                    foreach ($request->file("anomalies.$index.photos") as $file) {
+                        $path = $file->store('anomalies', 'public');
+                        $anomaly->pictures()->create(['path' => $path]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('daily-reports.index')
+                ->with('success', 'Reporte actualizado correctamente');
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return back()->with('error', 'Error al actualizar el reporte');
+        }
     }
 
     // DELETE
@@ -203,7 +316,7 @@ class DailyReportController extends Controller
         return back()->with('success', 'Reporte eliminado correctamente');
     }
 
-    // PDF (método personalizado → requiere authorize manual)
+    // PDF VIEW
     public function show(DailyReport $daily_report)
     {
         $this->authorize('view', $daily_report);
@@ -213,14 +326,36 @@ class DailyReportController extends Controller
             'project',
             'machine',
             'maintenances',
-            'maintenances.maintenanceType'
+            'maintenances.maintenanceType',
+            'anomalies',
+            'anomalies.pictures'
         ]);
+
+        //Convertir imágenes a base64 AQUÍ (no en el blade)
+        foreach ($daily_report->anomalies as $anomaly) {
+            foreach ($anomaly->pictures as $pic) {
+
+                $path = public_path('storage/' . $pic->path);
+
+                if (file_exists($path)) {
+                    $type = pathinfo($path, PATHINFO_EXTENSION);
+                    $data = file_get_contents($path);
+                    $pic->base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                } else {
+                    $pic->base64 = null;
+                }
+            }
+        }
 
         $pdf = Pdf::loadView('report.daily_report', [
             'title'  => 'Daily Report ' . $daily_report->id,
             'report' => $daily_report
+        ])->setOptions([
+            'isRemoteEnabled' => true,
         ]);
 
         return $pdf->stream('daily_report_' . $daily_report->id . '.pdf');
     }
+
+
 }

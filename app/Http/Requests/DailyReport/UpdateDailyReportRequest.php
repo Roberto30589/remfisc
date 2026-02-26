@@ -56,6 +56,12 @@ class UpdateDailyReportRequest extends DailyReportRequest
             'nullable',
             'string'
         ],
+        // ANOMALÍAS
+        'anomalies' => ['nullable', 'array'],
+        'anomalies.*.description' => ['nullable', 'string'],
+        'anomalies.*.picture_id' => ['nullable', 'exists:pictures,id'],
+        'anomalies.*.severity' => ['nullable', 'string'],
+        
     ];
 }
 }
