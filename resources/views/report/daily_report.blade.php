@@ -172,25 +172,31 @@ Nº {{ $report->id }}
 {{ $a->severity ?? '-' }}
 </td>
 
-
+<!--fotos anomalia -->
 <td>
-@if($a->pictures && $a->pictures->count())
 
-    @foreach($a->pictures as $pic)
+@if(!empty($a->media_base64) && $a->media_base64->count())
 
-        @if(!empty($pic->base64))
-            <div style="margin-bottom:5px;">
-                <img src="{{ $pic->base64 }}"
-                     width="80"
-                     style="border:1px solid #ccc; padding:2px;">
-            </div>
-        @endif
+    <table width="100%" cellpadding="2" cellspacing="0">
+        <tr>
 
-    @endforeach
+        @foreach($a->media_base64 as $pic)
+            <td style="border:none; padding:4px; text-align:left;">
+                <img 
+                    src="{{ $pic['base64'] }}"
+                    width="90"
+                    style="display:block; border:1px solid #ccc;"
+                >
+            </td>
+        @endforeach
+
+        </tr>
+    </table>
 
 @else
     -
 @endif
+
 </td>
 
 </tr>
@@ -213,8 +219,6 @@ Nº {{ $report->id }}
 <div style="color:gray">
 {{ $report->user->rut }}
 </div>
-
-<div>Operador</div>
 
 <div style="font-size:10px;">
 <span style="color:#000;">

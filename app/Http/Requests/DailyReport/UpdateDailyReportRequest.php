@@ -58,9 +58,15 @@ class UpdateDailyReportRequest extends DailyReportRequest
         ],
         // ANOMALÍAS
         'anomalies' => ['nullable', 'array'],
+        'anomalies.*.id' => ['nullable', 'exists:anomalies,id'],
         'anomalies.*.description' => ['nullable', 'string'],
-        'anomalies.*.picture_id' => ['nullable', 'exists:pictures,id'],
         'anomalies.*.severity' => ['nullable', 'string'],
+        'anomalies.*.photos' => ['nullable', 'array'],
+        'anomalies.*.photos.*' => [
+            'file',
+            'mimes:jpeg,png,webp',
+            'max:5120' // 5MB
+        ],
         
     ];
 }

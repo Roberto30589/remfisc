@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Anomaly extends Model
+class Anomaly extends Model implements HasMedia
 {
+    use InteractsWithMedia;
+
     protected $fillable = [
         'daily_report_id',
         'description',
@@ -16,9 +20,11 @@ class Anomaly extends Model
     {
         return $this->belongsTo(DailyReport::class);
     }
-
-    public function pictures()
+    // Define media collection for anomalies
+    public function registerMediaCollections(): void
     {
-        return $this->hasMany(Picture::class);
+        $this->addMediaCollection('anomalies')
+            ->useDisk('public')
+            ->acceptsMimeTypes(['image/jpeg','image/png','image/webp']);
     }
 }

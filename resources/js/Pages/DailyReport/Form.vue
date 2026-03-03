@@ -7,7 +7,7 @@ import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 // Props desde backend
 // dailyReport puede ser null si estamos creando
@@ -50,9 +50,7 @@ const buildMaintenances = () => {
 }
 
 
-// ==========================================================================
 // Anomalías
-// ==========================================================================
 
 // Precarga anomalías si estamos editando
 // Separamos fotos existentes de las nuevas (File objects)
@@ -62,18 +60,18 @@ const buildAnomalies = () => {
 
     return props.dailyReport.anomalies.map(a => ({
         id: a.id,
+        temp_id: crypto.randomUUID(),
         description: a.description ?? '',
         severity: a.severity ?? '',
-        existing_photos: a.pictures?.map(p => p.id) ?? [], // solo IDs
-        pictures: a.pictures ?? [], // para mostrar
-        photos: [] // nuevas imágenes
+        existing_photos: a.media?.map(p => p.id) ?? [],
+        media: a.media ?? [],
+        photos: [] // fotos nuevas a subir
+
     }))
 }
 
 
-// ==========================================================================
 // Inicialización del formulario
-// ==========================================================================
 
 // Reglas:
 // - Crear → usar datos del último reporte si existen
@@ -81,7 +79,7 @@ const buildAnomalies = () => {
 const form = useForm({
     project_id: props.dailyReport?.project_id ?? props.lastReport?.project_id ?? null,
     machine_id: props.dailyReport?.machine_id ?? props.lastReport?.machine_id ?? null,
-    date: props.dailyReport?.date ?? new Date().toISOString().slice(0,10),
+    date: props.dailyReport?.date ?? props.lastReport?.date ?? '',
     initial_km: props.dailyReport?.initial_km ?? props.lastReport?.final_km ?? '',
     final_km: props.dailyReport?.final_km ?? '',
     initial_hm: props.dailyReport?.initial_hm ?? props.lastReport?.final_hm ?? '',
@@ -111,9 +109,7 @@ const totalHm = computed(() =>
 )
 
 
-// ==========================================================================
 // Finalizar reporte
-// ==========================================================================
 
 // Marca el reporte como finalizado
 // Se envía como update normal con flag adicional
@@ -128,9 +124,7 @@ const finishReport = () => {
 }
 
 
-// ==========================================================================
-// Manejo offline básico
-// ==========================================================================
+// Manejo offline 
 
 // Estrategia simple:
 // - Sin conexión → guardar en localStorage
@@ -168,35 +162,35 @@ onMounted(() => {
 })
 
 
-// ==========================================================================
 // Submit principal
-// ==========================================================================
 
 const submit = () => {
 
-    const payload = form.data()
-
-    if(!navigator.onLine){
-        saveOffline(payload)
+    if (!navigator.onLine) {
+        saveOffline(form.data())
         return
     }
 
-    props.dailyReport
-        ? form.put(route('daily-reports.update', props.dailyReport.id), { forceFormData: true })
-        : form.post(route('daily-reports.store'), { forceFormData: true })
+
+
+    const options = { forceFormData: true }
+
+    if (props.dailyReport) {
+        form.put(route('daily-reports.update', props.dailyReport.id), options)
+    } else {
+        form.post(route('daily-reports.store'), options)
+    }
 }
-
-
-// ==========================================================================
 // Gestión de anomalías
-// ==========================================================================
 
 function addAnomaly(){
     form.anomalies.push({
+        id: null,
+        temp_id: crypto.randomUUID(),
         description: '',
         severity: '',
         existing_photos: [],
-        pictures: [],
+        media: [],
         photos: []
     })
 }
@@ -204,21 +198,85 @@ function addAnomaly(){
 function removeAnomaly(index){
     form.anomalies.splice(index, 1)
 }
+// Manejo de fotos
+function handlePhotos(event, index){
 
-function handlePhotos(e, index){
+    const fileInputs = event.target.files
+    const maxDimension = 1280 // puedes ajustar (480 es muy chico para reportes)
 
-    const files = Array.from(e.target.files)
+    for (let i = 0; i < fileInputs.length; i++) {
 
-    if(!form.anomalies[index].photos){
-        form.anomalies[index].photos = []
+        const file = fileInputs[i]
+        const img = new Image()
+
+        img.onload = () => {
+
+            const canvas = document.createElement('canvas')
+            const width = img.width
+            const height = img.height
+
+            let newWidth, newHeight
+
+            if (width > height) {
+                newWidth = maxDimension
+                newHeight = (height / width) * maxDimension
+            } else {
+                newHeight = maxDimension
+                newWidth = (width / height) * maxDimension
+            }
+
+            canvas.width = newWidth
+            canvas.height = newHeight
+
+            const ctx = canvas.getContext('2d')
+            ctx.drawImage(img, 0, 0, newWidth, newHeight)
+
+            const dataURL = canvas.toDataURL('image/jpeg', 0.8)
+            const optimizedFile = dataURLtoFile(dataURL, file.name)
+
+            if(!form.anomalies[index].photos){
+                form.anomalies[index].photos = []
+            }
+
+            form.anomalies[index].photos.push(optimizedFile)
+        }
+
+        img.src = URL.createObjectURL(file)
     }
-
-    form.anomalies[index].photos.push(...files)
 }
 
+// Convierte un dataURL a un objeto File para subir al backend
+function dataURLtoFile(dataurl, filename){
+    const arr = dataurl.split(',')
+    const mime = arr[0].match(/:(.*?);/)[1]
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
+
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n)
+    }
+
+    return new File([u8arr], filename, { type: mime })
+}
 // Elimina una foto nueva (aún no guardada)
 function removePhoto(aIndex, pIndex){
     form.anomalies[aIndex].photos.splice(pIndex, 1)
+}
+// Elimina una foto existente (ya guardada en backend)
+function removeExistingPhoto(aIndex, photoId){
+
+    const anomaly = form.anomalies[aIndex]
+
+    anomaly.existing_photos =
+        anomaly.existing_photos.filter(id => id !== photoId)
+
+    anomaly.media =
+        anomaly.media.filter(p => p.id !== photoId)
+}
+// Crea una URL temporal para mostrar preview de fotos nuevas
+function createImageURL(file){
+    return URL.createObjectURL(file)
 }
 </script>
 <template>
@@ -394,8 +452,6 @@ function removePhoto(aIndex, pIndex){
                                     </span>
 
                                 </td>
-
-
                                 <!-- OBSERVACION -->
                                 <td class="border px-3 py-2">
 
@@ -404,21 +460,14 @@ function removePhoto(aIndex, pIndex){
                                     class="w-full"
                                     placeholder="Observaciones (opcional)"
                                     />
-
                                 </td>
-
                             </tr>
-
                         </tbody>
-
                     </table>
-
                 </div>
-
             </div>
             <!-- ANOMALIAS -->
             <div class="col-span-2 mt-8">
-
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg font-semibold">ANOMALÍAS DETECTADAS</h3>
 
@@ -428,12 +477,8 @@ function removePhoto(aIndex, pIndex){
                 </div>
 
                 <div
-                    v-for="(anomaly,i) in form.anomalies"
-                    :key="i"
-                    class="border rounded p-4 mb-4 bg-orange-50"
-                >
+                    v-for="(anomaly, i) in form.anomalies" :key="anomaly.id || anomaly.temp_id" >
                     <div class="grid grid-cols-2 gap-3">
-
                         <!-- descripción -->
                         <div class="col-span-2">
                             <InputLabel value="Descripción anomalía" />
@@ -462,19 +507,20 @@ function removePhoto(aIndex, pIndex){
                                 multiple
                                 accept="image/*"
                                 capture="environment"
-                                @change="handlePhotos($event,i)"
+                                @change="handlePhotos($event, i)"
                                 class="block w-full text-sm"
                             />
                         </div>
 
                         <!-- fotos guardadas -->
                         <div
-                            v-for="photo in anomaly.pictures"
+                            v-for="photo in anomaly.media"
                             :key="'existing-'+photo.id"
                             class="relative"
                         >
+                            <!-- Usamos URL original para mostrar imagen guardada en backend -->
                             <img
-                                :src="'/storage/' + photo.path"
+                                :src="photo.original_url"
                                 class="w-24 h-24 object-cover rounded border"
                             />
                             <button
@@ -488,18 +534,18 @@ function removePhoto(aIndex, pIndex){
 
                         <!-- fotos nuevas -->
                         <div
-                            v-for="(photo,pIndex) in anomaly.photos"
+                            v-for="(photo, pIndex) in anomaly.photos"
                             :key="'new-'+pIndex"
                             class="relative"
                         >
                             <img
-                                :src="URL.createObjectURL(photo)"
+                                :src="createImageURL(photo)"
                                 class="w-24 h-24 object-cover rounded border"
                             />
                             <button
                                 type="button"
                                 class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2"
-                                @click="removeNewPhoto(i,pIndex)"
+                                @click="removePhoto(i, pIndex)"
                             >
                                 ×
                             </button>
