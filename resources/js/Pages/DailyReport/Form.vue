@@ -301,7 +301,7 @@ function createImageURL(file){
             REPORTE DIARIO DE MAQUINARIA
         </h2>
 
-        <form @submit.prevent="submit" class="grid grid-cols-2 gap-4">
+        <form @submit.prevent="submit" class="flex flex-col gap-2 md:grid md:grid-cols-2 md:gap-4">
 
             <!-- Usuario -->
             <div>
@@ -341,47 +341,83 @@ function createImageURL(file){
             </div>
 
             <!-- KM -->
-                <div class="grid grid-cols-3 gap-4 border rounded">
+                <div class="border rounded">
                     <div class="col-span-3 text-center text-gray-800 text-sm font-bold">
                         INDICAR KILOMETRAJE
                     </div>
-                    <div>
-                        <InputLabel value="Inicial" />
-                        <TextInput type="number" v-model="form.initial_km" class="w-full"/>
-                    </div>
-                    <div>
-                        <InputLabel value="Final" />
-                        <TextInput type="number" v-model="form.final_km"  class="w-full"/>
-                    </div>
-                    <div>
-                        <InputLabel value="Total" />
-                        <TextInput type="number" v-model="totalKm" class="w-full bg-gray-100" readonly />
+                    <div class="grid grid-cols-3 gap-2 p-2">
+                        <div>
+                            <InputLabel value="Inicial" />
+                            <div class="input-withend">
+                                <TextInput type="number" v-model="form.initial_km" class="w-full"/>
+                                <div class="input-end">
+                                    Km
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <InputLabel value="Final" />
+                            <div class="input-withend">
+                                <TextInput type="number" v-model="form.final_km"  class="w-full"/>
+                                <div class="input-end">
+                                    Km
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <InputLabel value="Total" />
+                            <div class="input-withend">
+                                <TextInput type="number" v-model="totalKm" class="w-full bg-gray-100" readonly />
+                                <div class="input-end">
+                                    Km
+                                </div>
+                            </div>
 
+                        </div>
                     </div>
                 </div>
 
             <!-- HM -->
-                <div class="grid grid-cols-3 gap-4 border rounded">
+                <div class="border rounded">
                     <div class="col-span-3 text-center text-gray-800 text-sm font-bold">
                         INDICAR HOROMETRO
                     </div>
-                    <div>
-                        <InputLabel value="Inicial" />
-                        <TextInput type="number" v-model="form.initial_hm" class="w-full"/>
-                    </div>
-                    <div>
-                        <InputLabel value="Final" />
-                        <TextInput type="number" v-model="form.final_hm" class="w-full"/>
-                    </div>
-                    <div>
-                        <InputLabel value="Total" />
-                        <TextInput type="number" v-model="totalHm" class="w-full bg-gray-100" :class="totalHm<0 ? 'text-danger-600' : ''" readonly />
+                    <div class="grid grid-cols-3 gap-2 p-2">
+                        <div>
+                            <InputLabel value="Inicial" />
+                            <div class="input-withend">
+                                <TextInput type="number" v-model="form.initial_hm" class="w-full"/>
+                                <div class="input-end">
+                                    Hr
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <InputLabel value="Final" />
+                            <div class="input-withend">
+                                <TextInput type="number" v-model="form.final_hm" class="w-full"/>
+                                <div class="input-end">
+                                    Hr
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <InputLabel value="Total" />
+                            <div class="input-withend">
+                                <TextInput type="number" v-model="totalHm" class="w-full bg-gray-100" :class="totalHm<0 ? 'text-danger-600' : ''" readonly />
+                                <div class="input-end">
+                                    Hr
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
             <!-- Trabajo -->
             <div class="col-span-2">
-                <InputLabel value="DESCRIPCION DE LOS TRABAJOS REALIZADOS" />
+                <h3 class="text-center text-gray-800 text-sm font-bold">
+                    DESCRIPCION DE LOS TRABAJOS REALIZADOS
+                </h3>
                 <textarea
                     v-model="form.work_description"
                     class="w-full min-h-32 border-stone-300 focus:border-stone-500 focus:ring-stone-500 rounded-md shadow-sm">
@@ -391,7 +427,7 @@ function createImageURL(file){
             <!-- DETALLE MANTENCIONES -->
             <div class="col-span-2 mt-6">
 
-                <h3 class="text-lg font-semibold mb-2">
+                <h3 class="text-center text-gray-800 text-sm font-bold">
                     DETALLE A LLENAR PARA TODAS LAS MAQUINAS
                 </h3>
 
@@ -422,30 +458,24 @@ function createImageURL(file){
 
                                 <!-- NOMBRE + UNIDAD -->
                                 <td class="border px-3 py-2 font-medium align-middle">
-
                                     {{ maintenanceTypeMap[maintenance.maintenance_type_id]?.name }}
-
-                                    <span
-                                    v-if="maintenanceTypeMap[maintenance.maintenance_type_id]?.unit"
-                                    class="text-xs text-gray-500">
-
-                                        ({{ maintenanceTypeMap[maintenance.maintenance_type_id]?.unit }})
-
-                                    </span>
-
                                 </td>
 
 
                                 <!-- CANTIDAD -->
                                 <td class="border px-3 py-2">
 
+                                    <div class="input-withend" v-if="maintenanceTypeMap[maintenance.maintenance_type_id]?.requires_quantity">
                                     <TextInput
-                                    v-if="maintenanceTypeMap[maintenance.maintenance_type_id]?.requires_quantity"
                                     type="number"
                                     step="0.01"
                                     v-model.number="maintenance.quantity"
                                     class="w-full"
                                     />
+                                        <div class="input-end" v-if="maintenanceTypeMap[maintenance.maintenance_type_id]?.unit">
+                                            {{ maintenanceTypeMap[maintenance.maintenance_type_id]?.unit }}
+                                        </div>
+                                    </div>
 
                                     <span v-else class="text-gray-500 italic">
                                         No aplica
@@ -469,19 +499,28 @@ function createImageURL(file){
             <!-- ANOMALIAS -->
             <div class="col-span-2 mt-8">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold">ANOMALÍAS DETECTADAS</h3>
+                    <h3 class="text-center text-gray-800 text-sm font-bold">
+                        ANOMALÍAS DETECTADAS
+                    </h3>
 
-                    <ButtonColor type="button" color="yellow" @click="addAnomaly">
+                    <ButtonColor type="button" color="orange" @click="addAnomaly">
                         + Agregar anomalía
                     </ButtonColor>
                 </div>
 
-                <div
-                    v-for="(anomaly, i) in form.anomalies" :key="anomaly.id || anomaly.temp_id" >
-                    <div class="grid grid-cols-2 gap-3">
+                <div v-for="(anomaly, i) in form.anomalies" :key="anomaly.id || anomaly.temp_id" >
+                    <div class="grid grid-cols-2 gap-3 border rounded p-3 mb-4 bg-gray-50">
                         <!-- descripción -->
                         <div class="col-span-2">
-                            <InputLabel value="Descripción anomalía" />
+                            <div class="flex ">
+                                <InputLabel value="Descripción anomalía" class="flex-1"/>
+                                <!-- eliminar anomalía -->
+                                <div class="col-span-2">
+                                    <ButtonColor type="button" color="red" @click="removeAnomaly(i)" padding="py-0 px-1">
+                                        Eliminar anomalía
+                                    </ButtonColor>
+                                </div>
+                            </div>
                             <textarea
                                 v-model="anomaly.description"
                                 class="w-full rounded border-gray-300"
@@ -532,39 +571,41 @@ function createImageURL(file){
                             </button>
                         </div>
 
-                        <!-- fotos nuevas -->
-                        <div
-                            v-for="(photo, pIndex) in anomaly.photos"
-                            :key="'new-'+pIndex"
-                            class="relative"
-                        >
-                            <img
-                                :src="createImageURL(photo)"
-                                class="w-24 h-24 object-cover rounded border"
-                            />
-                            <button
-                                type="button"
-                                class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2"
-                                @click="removePhoto(i, pIndex)"
+                        <div class="col-span-2 flex gap-2 mt-2 flex-wrap">
+                            <!-- fotos nuevas -->
+                            <div
+                                v-for="(photo, pIndex) in anomaly.photos"
+                                :key="'new-'+pIndex"
+                                class="relative w-24 h-24"
                             >
-                                ×
-                            </button>
+                                <img
+                                    :src="createImageURL(photo)"
+                                    class="w-24 h-24 object-cover rounded border"
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2"
+                                    @click="removePhoto(i, pIndex)"
+                                >
+                                    ×
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- eliminar anomalía -->
-                        <div class="col-span-2">
-                            <ButtonColor type="button" color="red" @click="removeAnomaly(i)">
-                                Eliminar anomalía
-                            </ButtonColor>
-                        </div>
 
                     </div>
                 </div>
 
-            </div>
+                <div>
+                    <span v-if="!form.anomalies.length" class="text-gray-500 italic">
+                        No se han agregado anomalías.
+                    </span>
+                </div>
 
+            </div>
+            <hr class="mt-6 col-span-2" />
             <!-- Botones -->
-            <div class="col-span-2 flex justify-between mt-6">
+            <div class="col-span-2 flex justify-between">
                 <ButtonColor type="submit" color="green" :disabled="form.processing">
                     {{ props.dailyReport ? 'Actualizar Reporte' : 'Crear Reporte' }}
                 </ButtonColor>
@@ -582,3 +623,29 @@ function createImageURL(file){
     </div>
 </AppMain>
 </template>
+<style scoped>
+/* Estilos específicos para este componente */
+.input-withend {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-withend input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-right: 0.3rem; /* reduce padding para compensar el espacio del "Km" */
+    padding-left: 0.3rem; /* padding normal a la izquierda */
+}
+.input-withend .input-end {
+    border-left: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb; /* mismo fondo que el input */
+    border-top-right-radius: 0.375rem; /* mismo border-radius que el input */
+    border-bottom-right-radius: 0.375rem;
+    border: 1px solid #d1d5db; /* mismo borde que el input */
+    border-left: none; /* elimina borde izquierdo para unir con el input */
+    padding: 0rem 0.35rem; /* mismo padding que el input */
+}
+</style>
